@@ -8,9 +8,11 @@ public class BankDatabase
    // no-argument BankDatabase constructor initializes accounts
    public BankDatabase()
    {
-      accounts = new Account[ 2 ]; // just 2 accounts for testing
-      accounts[ 0 ] = new Account( 12345, 54321, 1000.0, 1200.0 );
-      accounts[ 1 ] = new Account( 98765, 56789, 200.0, 200.0 );  
+   accounts = new Account[ 2 ]; // just 2 accounts for testing
+   // account 0: a SavingAccount with default interest rate (0.25% p.a.)
+   accounts[ 0 ] = new SavingAccount( 12345, 54321, 1000.0, 1200.0 );
+   // account 1: a ChequeAccount with default per-cheque limit HK$50,000
+   accounts[ 1 ] = new ChequeAccount( 98765, 56789, 200.0, 200.0 );  
    } // end no-argument BankDatabase constructor
    
    // retrieve Account object containing specified account number
@@ -26,6 +28,11 @@ public class BankDatabase
 
       return null; // if no matching account was found, return null
    } // end method getAccount
+
+   // return true if an account with the specified account number exists
+   public boolean accountExists( int accountNumber ) {
+      return getAccount( accountNumber ) != null;
+   }
 
    // determine whether user-specified account number and PIN match
    // those of an account in the database

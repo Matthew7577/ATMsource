@@ -8,7 +8,7 @@ public class Withdrawal extends Transaction
    private CashDispenser cashDispenser; // reference to cash dispenser
 
    // constant corresponding to menu option to cancel
-   private final static int CANCELED = 6;
+   private final static int CANCELED = 4;
 
    // Withdrawal constructor
    public Withdrawal( int userAccountNumber, Screen atmScreen, 
@@ -92,19 +92,18 @@ public class Withdrawal extends Transaction
       Screen screen = getScreen(); // get screen reference
       
       // array of amounts to correspond to menu numbers
-      int amounts[] = { 0, 20, 40, 60, 100, 200 };
+         // HKD menu: common ATM withdrawal options (multiples/denominations)
+         int amounts[] = { 0, 100, 500, 1000 };
 
       // loop while no valid choice has been made
       while ( userChoice == 0 )
       {
-         // display the menu
-         screen.displayMessageLine( "\nWithdrawal Menu:" );
-         screen.displayMessageLine( "1 - $20" );
-         screen.displayMessageLine( "2 - $40" );
-         screen.displayMessageLine( "3 - $60" );
-         screen.displayMessageLine( "4 - $100" );
-         screen.displayMessageLine( "5 - $200" );
-         screen.displayMessageLine( "6 - Cancel transaction" );
+         // display the HKD menu options
+         screen.displayMessageLine( "\nWithdrawal Menu (HKD):" );
+         screen.displayMessageLine( "1 - HK$100" );
+         screen.displayMessageLine( "2 - HK$500" );
+         screen.displayMessageLine( "3 - HK$1000" );
+         screen.displayMessageLine( "4 - Cancel transaction" );
          screen.displayMessage( "\nChoose a withdrawal amount: " );
 
          int input = keypad.getInput(); // get user input through keypad
@@ -115,8 +114,6 @@ public class Withdrawal extends Transaction
             case 1: // if the user chose a withdrawal amount 
             case 2: // (i.e., chose option 1, 2, 3, 4 or 5), return the
             case 3: // corresponding amount from amounts array
-            case 4:
-            case 5:
                userChoice = amounts[ input ]; // save user's choice
                break;       
             case CANCELED: // the user chose to cancel
