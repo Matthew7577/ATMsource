@@ -1,26 +1,32 @@
 // ChequeAccount.java
-// Represents a cheque account with a per-cheque limit
+// Represents a cheque account with limit per cheque
 
-public class ChequeAccount extends Account {
-    private double limitPerCheque; // per-cheque limit
+public class ChequeAccount extends Account
+{
+   private double limitPerCheque; // maximum amount allowed per cheque
 
-    // constructor with default limit
-    public ChequeAccount(int theAccountNumber, int thePIN, double theAvailableBalance, double theTotalBalance) {
-        super(theAccountNumber, thePIN, theAvailableBalance, theTotalBalance);
-        this.limitPerCheque = 50000.0; // default HK$50,000
-    }
-
-    // constructor with explicit limit
-    public ChequeAccount(int theAccountNumber, int thePIN, double theAvailableBalance, double theTotalBalance, double limitPerCheque) {
-        super(theAccountNumber, thePIN, theAvailableBalance, theTotalBalance);
-        this.limitPerCheque = limitPerCheque;
-    }
-
-    public double getLimitPerCheque() {
-        return limitPerCheque;
-    }
-
-    public void setLimitPerCheque(double limitPerCheque) {
-        this.limitPerCheque = limitPerCheque;
-    }
-}
+   // ChequeAccount constructor
+   public ChequeAccount(int accountNumber, int pin, 
+      double availableBalance, double totalBalance)
+   {
+      // initialize superclass variables
+      super(accountNumber, pin, availableBalance, totalBalance);
+      
+      // initialize limit per cheque with default value of HK$50,000
+      limitPerCheque = 50000.0;
+   } // end ChequeAccount constructor
+   
+   // getter method for limit per cheque
+   public double getLimitPerCheque()
+   {
+      return limitPerCheque;
+   } // end method getLimitPerCheque
+   
+   // setter method for limit per cheque
+   public void setLimitPerCheque(double newLimit)
+   {
+      // validate that limit is positive
+      if (newLimit >= 0.0)
+         limitPerCheque = newLimit;
+   } // end method setLimitPerCheque
+} // end class ChequeAccount

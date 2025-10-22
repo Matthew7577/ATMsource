@@ -1,55 +1,101 @@
 // Transfer.java
 // Represents a transfer ATM transaction
 
-public class Transfer extends Transaction {
-    private Keypad keypad; // reference to keypad
+public class Transfer extends Transaction
+{
+   private double amount; // amount to transfer
+   private Keypad keypad; // reference to keypad
+   private int targetAccount; // account to transfer to
+   private final static int CANCELED = 0; // constant for cancel option
 
-    private final static int CANCELED = 0;
+   // Transfer constructor
+   public Transfer(int userAccountNumber, Screen atmScreen, 
+      BankDatabase atmBankDatabase, Keypad atmKeypad)
+   {
+      // initialize superclass variables
+      super(userAccountNumber, atmScreen, atmBankDatabase);
+      
+      // initialize references to keypad
+      keypad = atmKeypad;
+   } // end Transfer constructor
 
-    public Transfer(int userAccountNumber, Screen atmScreen, BankDatabase atmBankDatabase, Keypad atmKeypad) {
-        super(userAccountNumber, atmScreen, atmBankDatabase);
-        this.keypad = atmKeypad;
-    }
+   // perform the transfer transaction
+   @Override
+   public void execute()
+   {
+      double availableBalance; // amount available for transfer
 
-    @Override
-    public void execute() {
-        Screen screen = getScreen();
-        BankDatabase bankDatabase = getBankDatabase();
+      // get available balance of account involved
+      availableBalance = getBankDatabase().getAvailableBalance(getAccountNumber());
 
-        screen.displayMessageLine("\nTransfer Funds:");
+      // get transfer amount from user and check for cancellation
+      amount = promptForTransferAmount();
+      
+      if (amount == CANCELED) // user chose to cancel
+         return; // return to main menu
+         
+      // check whether the user has enough money first
+      if (amount > availableBalance)
+      {   
+         getScreen().displayMessageLine(
+            "\nInsufficient funds in your account." +
+            "\n\nPlease choose a smaller amount.");
+         return; // return to main menu
+      }
+      
+      // get target account from user
+      targetAccount = promptForTargetAccount();
+      
+      if (targetAccount == CANCELED) // user chose to cancel
+         return; // return to main menu
+         
+      // check whether target account exists and is different from source account
+      if (!getBankDatabase().accountExists(targetAccount) || 
+          targetAccount == getAccountNumber())
+      {
+         getScreen().displayMessageLine(
+            "\nInvalid target account. Transfer canceled.");
+         return; // return to main menu
+      }
+      
+      // at this point, we have a valid amount, sufficient funds, and valid target account
+      // perform the transfer
+      getBankDatabase().debit(getAccountNumber(), amount);
+      getBankDatabase().credit(targetAccount, amount);
+      
+      // display success message
+      getScreen().displayMessageLine("\nTransfer successful!");
+      getScreen().displayMessageLine(
+         String.format("Amount transferred: HK$%.2f", amount));
+   } // end method execute
 
-        screen.displayMessage("Enter destination account number (or 0 to cancel): ");
-        int destAccount = keypad.getInput();
-        if (destAccount == CANCELED) {
-            screen.displayMessageLine("\nCanceling transaction...");
-            return;
-        }
+   // prompt user to enter a transfer amount
+   private double promptForTransferAmount()
+   {
+      Screen screen = getScreen(); // get reference to screen
 
-        // check destination account exists
-        if (!bankDatabase.accountExists(destAccount)) {
-            screen.displayMessageLine("\nDestination account not found.");
-            return;
-        }
+      // display the prompt
+      screen.displayMessage("\nPlease enter transfer amount " + 
+         "(e.g., 1.50 for $1.50, or 0 to cancel): $");
+      double input = keypad.getInputDouble(); // receive decimal input
+      
+      // check whether the user canceled or entered a valid amount
+      if (input == CANCELED) 
+         return CANCELED;
+      else
+         return input; // return dollar amount directly
+   }
+   
+   // prompt user to enter a target account number
+   private int promptForTargetAccount()
+   {
+      Screen screen = getScreen(); // get reference to screen
 
-        screen.displayMessage("Enter amount to transfer in dollars (no decimals): ");
-        int inputAmount = keypad.getInput();
-        double amount = (double) inputAmount; // treat as whole dollars
-
-        // check balance
-        double availableBalance = bankDatabase.getAvailableBalance(getAccountNumber());
-        if (amount <= 0) {
-            screen.displayMessageLine("\nInvalid amount. Transaction canceled.");
-            return;
-        }
-        if (amount > availableBalance) {
-            screen.displayMessageLine("\nInsufficient funds.");
-            return;
-        }
-
-        // perform transfer
-        bankDatabase.debit(getAccountNumber(), amount);
-        bankDatabase.credit(destAccount, amount);
-
-        screen.displayMessageLine("\nTransfer completed successfully.");
-    }
+      // display the prompt
+      screen.displayMessage("\nPlease enter target account number " + 
+         "(or 0 to cancel): ");
+      int input = keypad.getInput(); // receive input of account number
+      
+      return input; // return account number
+   }
 }

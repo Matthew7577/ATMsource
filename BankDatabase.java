@@ -8,13 +8,69 @@ public class BankDatabase
    // no-argument BankDatabase constructor initializes accounts
    public BankDatabase()
    {
-   accounts = new Account[ 2 ]; // just 2 accounts for testing
-   // account 0: a SavingAccount with default interest rate (0.25% p.a.)
-   accounts[ 0 ] = new SavingAccount( 12345, 54321, 1000.0, 1200.0 );
-   // account 1: a ChequeAccount with default per-cheque limit HK$50,000
-   accounts[ 1 ] = new ChequeAccount( 98765, 56789, 200.0, 200.0 );  
+      accounts = new Account[ 50 ]; // Maximum 50 accounts
+      // Create some sample accounts (both saving and cheque accounts)
+      accounts[ 0 ] = new SavingAccount( 12345, 54321, 1000.0, 1200.0 );
+      accounts[ 1 ] = new ChequeAccount( 98765, 56789, 200.0, 200.0 );
+      accounts[ 2 ] = new SavingAccount( 11451, 19198, 19000000000.0, 19000000001.0 );
+      accounts[ 3 ] = new ChequeAccount( 77777, 99999, 799.0, 7999.0 );
    } // end no-argument BankDatabase constructor
    
+   // determine if the account is a saving account
+   public boolean isSavingAccount( int accountNumber )
+   {
+      Account account = getAccount( accountNumber );
+      return account instanceof SavingAccount;
+   } // end method isSavingAccount
+   
+   // determine if the account is a cheque account
+   public boolean isChequeAccount( int accountNumber )
+   {
+      Account account = getAccount( accountNumber );
+      return account instanceof ChequeAccount;
+   } // end method isChequeAccount
+   
+   // get interest rate for a saving account
+   public double getInterestRate( int accountNumber )
+   {
+      Account account = getAccount( accountNumber );
+      if ( account instanceof SavingAccount )
+         return ((SavingAccount) account).getInterestRate();
+      return 0.0; // return 0 if not a saving account
+   } // end method getInterestRate
+   
+   // set interest rate for a saving account
+   public void setInterestRate( int accountNumber, double newRate )
+   {
+      Account account = getAccount( accountNumber );
+      if ( account instanceof SavingAccount )
+         ((SavingAccount) account).setInterestRate( newRate );
+   } // end method setInterestRate
+   
+   // get limit per cheque for a cheque account
+   public double getLimitPerCheque( int accountNumber )
+   {
+      Account account = getAccount( accountNumber );
+      if ( account instanceof ChequeAccount )
+         return ((ChequeAccount) account).getLimitPerCheque();
+      return 0.0; // return 0 if not a cheque account
+   } // end method getLimitPerCheque
+   
+   // set limit per cheque for a cheque account
+   public void setLimitPerCheque( int accountNumber, double newLimit )
+   {
+      Account account = getAccount( accountNumber );
+      if ( account instanceof ChequeAccount )
+         ((ChequeAccount) account).setLimitPerCheque( newLimit );
+   } // end method setLimitPerCheque
+   
+   // check whether an account with specified account number exists
+   public boolean accountExists( int accountNumber )
+   {
+      // attempt to retrieve the account with the account number
+      return getAccount( accountNumber ) != null;
+   } // end method accountExists
+
    // retrieve Account object containing specified account number
    private Account getAccount( int accountNumber )
    {
@@ -28,11 +84,6 @@ public class BankDatabase
 
       return null; // if no matching account was found, return null
    } // end method getAccount
-
-   // return true if an account with the specified account number exists
-   public boolean accountExists( int accountNumber ) {
-      return getAccount( accountNumber ) != null;
-   }
 
    // determine whether user-specified account number and PIN match
    // those of an account in the database

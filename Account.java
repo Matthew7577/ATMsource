@@ -42,6 +42,7 @@ public class Account
    // credits an amount to the account
    public void credit( double amount )
    {
+      availableBalance += amount; // add to available balance
       totalBalance += amount; // add to total balance
    } // end method credit
 
