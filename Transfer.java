@@ -71,7 +71,7 @@ public class Transfer extends Transaction {
 
       // display the prompt
       screen.displayMessage("\nPlease enter transfer amount " +
-            "(e.g., 1.50 for $1.50, or 0 to cancel): $");
+            "(e.g., 1.50 for HK$1.50, or 0 to cancel): HK$");
       double input = keypad.getInputDouble(); // receive decimal input
 
       // check whether the user canceled or entered a valid amount
