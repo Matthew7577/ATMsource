@@ -143,7 +143,7 @@ public class Withdrawal extends Transaction {
 
       while (amount == 0) {
          screen.displayMessage("\nPlease enter a withdrawal amount" +
-               "\n(multiples of 100, 500, or 1000 only): $");
+               "\n(multiples of 100, 500, or 1000 only): HK$");
          int input = keypad.getInput();
 
          // check if amount is valid (multiple of 100, 500, or 1000)

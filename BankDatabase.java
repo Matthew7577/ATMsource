@@ -11,7 +11,7 @@ public class BankDatabase {
       accounts[0] = new SavingAccount(12345, 54321, 1000.0, 1200.0);
       accounts[1] = new ChequeAccount(98765, 56789, 200.0, 200.0);
       accounts[2] = new SavingAccount(11451, 19198, 19000000000.0, 19000000001.0);
-      accounts[3] = new ChequeAccount(77777, 99999, 799.0, 7999.0);
+      accounts[3] = new ChequeAccount(77777, 99999, 79999.0, 799999.0);
    } // end no-argument BankDatabase constructor
 
    // determine if the account is a saving account
