@@ -43,6 +43,17 @@ public class Withdrawal extends Transaction {
 
             // check whether the user has enough money in the account
             if (amount <= availableBalance) {
+               // check if this is a cheque account and amount exceeds limit
+               if (bankDatabase.isChequeAccount(getAccountNumber())) {
+                  double limit = bankDatabase.getLimitPerCheque(getAccountNumber());
+                  if (amount > limit) {
+                     screen.displayMessageLine(
+                           String.format("\nWithdrawal amount exceeds the limit of HK$%.2f for cheque accounts." +
+                                 "\n\nPlease choose a smaller amount.", limit));
+                     continue; // continue the loop to allow another attempt
+                  }
+               }
+
                // check whether the cash dispenser has enough money
                if (cashDispenser.isSufficientCashAvailable(amount)) {
                   // update the account involved to reflect withdrawal

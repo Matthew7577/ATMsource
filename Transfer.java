@@ -39,6 +39,17 @@ public class Transfer extends Transaction {
          return; // return to main menu
       }
 
+      // check if this is a cheque account and amount exceeds limit
+      if (getBankDatabase().isChequeAccount(getAccountNumber())) {
+         double limit = getBankDatabase().getLimitPerCheque(getAccountNumber());
+         if (amount > limit) {
+            getScreen().displayMessageLine(
+                  String.format("\nTransfer amount exceeds the limit of HK$%.2f for cheque accounts." +
+                        "\n\nPlease choose a smaller amount.", limit));
+            return; // return to main menu
+         }
+      }
+
       // get target account from user
       targetAccount = promptForTargetAccount();
 
