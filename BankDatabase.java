@@ -66,8 +66,9 @@ public class BankDatabase {
    private Account getAccount(int accountNumber) {
       // loop through accounts searching for matching account number
       for (Account currentAccount : accounts) {
-         // return current account if match found
-         if (currentAccount.getAccountNumber() == accountNumber)
+         // skip null entries in the accounts array
+         if (currentAccount != null &&
+               currentAccount.getAccountNumber() == accountNumber)
             return currentAccount;
       } // end for
 
