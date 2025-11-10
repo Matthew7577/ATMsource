@@ -65,6 +65,17 @@ public class Withdrawal extends Transaction {
                   // instruct user to take cash
                   screen.displayMessageLine(
                         "\nPlease take your cash now.");
+
+                  // display number of cash
+                  screen.displayMessageLine(
+                        "\nNumber of cash: \n" +
+                        ((amount / 1000) > 0 ? String.format("HK$1000 bills: %d  "
+                              , amount / 1000) : "") +
+                        (((amount % 1000) / 500) > 0 ? String.format("HK$500 bills: %d  "
+                              , (amount % 1000) / 500) : "") +
+                        (((amount % 500) / 100) > 0 ? String.format("HK$100 bills: %d"
+                              , (amount % 500) / 100) : "")
+                  );
                } // end if
                else // cash dispenser does not have enough cash
                   screen.displayMessageLine(
