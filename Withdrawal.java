@@ -7,7 +7,7 @@ public class Withdrawal extends Transaction {
    private CashDispenser cashDispenser; // reference to cash dispenser
 
    // constants for menu options
-   private final static int CANCELED = 7;
+   private final static int CANCELED = -1;
    private final static int CUSTOM_AMOUNT = 6;
 
    // Withdrawal constructor
@@ -21,9 +21,23 @@ public class Withdrawal extends Transaction {
       keypad = atmKeypad;
       cashDispenser = atmCashDispenser;
    } // end Withdrawal constructor
+   
+   // Withdrawal constructor with GUI
+   public Withdrawal(int userAccountNumber, Screen atmScreen,
+         BankDatabase atmBankDatabase, Keypad atmKeypad,
+         CashDispenser atmCashDispenser, ATMGUI gui) {
+      // initialize superclass variables
+      super(userAccountNumber, atmScreen, atmBankDatabase, gui);
+
+      // initialize references to keypad and cash dispenser
+      keypad = atmKeypad;
+      cashDispenser = atmCashDispenser;
+   } // end Withdrawal constructor
 
    // perform transaction
    public void execute() {
+      clearScreen(); // clear screen when entering this transaction
+      
       boolean cashDispensed = false; // cash was not dispensed yet
       double availableBalance; // amount available for withdrawal
 
@@ -76,17 +90,26 @@ public class Withdrawal extends Transaction {
                         (((amount % 500) / 100) > 0 ? String.format("HK$100 bills: %d"
                               , (amount % 500) / 100) : "")
                   );
+                  
+                  // Pause for 2 seconds to show the success message
+                  pause(2000);
                } // end if
                else // cash dispenser does not have enough cash
+               {
                   screen.displayMessageLine(
                         "\nInsufficient cash available in the ATM." +
                               "\n\nPlease choose a smaller amount.");
+                  // Pause for 2 seconds to show the error message
+                  pause(2000);
+               }
             } // end if
             else // not enough money available in user's account
             {
                screen.displayMessageLine(
                      "\nInsufficient funds in your account." +
                            "\n\nPlease choose a smaller amount.");
+               // Pause for 2 seconds to show the error message
+               pause(2000);
             } // end else
          } // end if
          else // user chose cancel menu option
@@ -111,15 +134,14 @@ public class Withdrawal extends Transaction {
       // loop while no valid choice has been made
       while (userChoice == 0) {
          // display the menu
-         screen.displayMessageLine("\nWithdrawal Menu:");
-         screen.displayMessageLine("1 - $200");
-         screen.displayMessageLine("2 - $500");
-         screen.displayMessageLine("3 - $1,000");
-         screen.displayMessageLine("4 - $2,000");
-         screen.displayMessageLine("5 - $5,000");
-         screen.displayMessageLine("6 - Other amount");
-         screen.displayMessageLine("7 - Cancel transaction");
-         screen.displayMessage("\nChoose a withdrawal option: ");
+         screen.displayMessageLine("\n" + padRight("1. $200", 40) + "  <");
+         screen.displayMessageLine(padRight("2. $500", 40) + "  <");
+         screen.displayMessageLine(padRight("3. $1,000", 40) + "  <");
+         screen.displayMessageLine(padRight("4. $2,000", 40) + "  <");
+         screen.displayMessageLine("" + padRight("", 40) + "  >");
+         screen.displayMessageLine("" + padRight("", 40) + ">  5. $5,000");
+         screen.displayMessageLine("" + padRight("", 40) + ">  6. Other amount");
+         screen.displayMessage("\nChoose a withdrawal option (or press CANCEL): ");
 
          int input = keypad.getInput(); // get user input through keypad
 
@@ -130,15 +152,17 @@ public class Withdrawal extends Transaction {
             case 3: // corresponding amount from amounts array
             case 4:
             case 5:
+               clearScreen(); // clear screen after selecting an amount
                userChoice = amounts[input]; // save user's choice
                break;
             case CUSTOM_AMOUNT: // user wants to enter a custom amount
+               clearScreen(); // clear screen before entering custom amount
                userChoice = promptForCustomAmount();
                break;
             case CANCELED: // the user chose to cancel
                userChoice = CANCELED; // save user's choice
                break;
-            default: // the user did not enter a value from 1-7
+            default: // the user did not enter a value from 1-6
                screen.displayMessageLine(
                      "\nInvalid selection. Try again.");
          } // end switch
@@ -153,9 +177,11 @@ public class Withdrawal extends Transaction {
       int amount = 0;
 
       while (amount == 0) {
-         screen.displayMessage("\nPlease enter a withdrawal amount" +
-               "\n(multiples of 100, 500, or 1000 only): HK$");
-         int input = keypad.getInput();
+         screen.displayMessageLine("\n\n\n\n\n");
+         screen.displayMessageLine(centerText("Please enter a withdrawal amount", 72));
+         screen.displayMessageLine(centerText("(multiples of 100, 500, or 1000 only)", 72));
+         screen.displayMessageLine("\n\n\n\n");
+         int input = keypad.getInputRightAlign();
 
          // check if amount is valid (multiple of 100, 500, or 1000)
          if (input == CANCELED)
@@ -171,6 +197,22 @@ public class Withdrawal extends Transaction {
 
       return amount;
    } // end method displayMenuOfAmounts
+   
+   // Helper method to pad string to right
+   private String padRight(String s, int n) {
+      return String.format("%-" + n + "s", s);
+   }
+   
+   // Helper method to center text
+   private String centerText(String text, int width) {
+      int padding = (width - text.length()) / 2;
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < padding; i++) {
+         sb.append(" ");
+      }
+      sb.append(text);
+      return sb.toString();
+   }
 } // end class Withdrawal
 
 /**************************************************************************

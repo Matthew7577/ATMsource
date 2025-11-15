@@ -8,6 +8,7 @@ public class ATM {
    private Keypad keypad; // ATM's keypad
    private CashDispenser cashDispenser; // ATM's cash dispenser
    private BankDatabase bankDatabase; // account information database
+   private ATMGUI gui; // ATM's GUI
 
    // constants corresponding to main menu options
    private static final int BALANCE_INQUIRY = 1;
@@ -15,14 +16,20 @@ public class ATM {
    private static final int TRANSFER = 3;
    private static final int EXIT = 4;
 
-   // no-argument ATM constructor initializes instance variables
-   public ATM() {
+   // Constructor that accepts GUI reference
+   public ATM(ATMGUI gui) {
+      this.gui = gui;
       userAuthenticated = false; // user is not authenticated to start
       currentAccountNumber = 0; // no current account number to start
-      screen = new Screen(); // create screen
-      keypad = new Keypad(); // create keypad
+      screen = new Screen(gui); // create screen with GUI
+      keypad = new Keypad(gui); // create keypad with GUI
       cashDispenser = new CashDispenser(); // create cash dispenser
       bankDatabase = new BankDatabase(); // create acct info database
+   } // end ATM constructor
+   
+   // no-argument ATM constructor initializes instance variables (for console mode)
+   public ATM() {
+      this(null); // call the other constructor with null GUI
    } // end no-argument ATM constructor
 
    // start ATM
@@ -47,7 +54,7 @@ public class ATM {
       screen.displayMessage("\nPlease enter your account number: ");
       int accountNumber = keypad.getInput(); // input account number
       screen.displayMessage("\nEnter your PIN: "); // prompt for PIN
-      int pin = keypad.getInput(); // input PIN
+      int pin = keypad.getInputPassword(); // input PIN with masking
 
       // set userAuthenticated to boolean value returned by database
       userAuthenticated = bankDatabase.authenticateUser(accountNumber, pin);
@@ -55,6 +62,9 @@ public class ATM {
       // check whether authentication succeeded
       if (userAuthenticated) {
          currentAccountNumber = accountNumber; // save user's account #
+         if (gui != null) {
+            gui.clearScreen(); // clear screen after successful login
+         }
       } // end if
       else
          screen.displayMessageLine(
@@ -84,6 +94,11 @@ public class ATM {
                currentTransaction = createTransaction(mainMenuSelection);
 
                currentTransaction.execute(); // execute transaction
+               
+               // Clear screen after transaction completes for clean menu display
+               if (gui != null) {
+                  gui.clearScreen();
+               }
                break;
             case EXIT: // user chose to terminate session
                screen.displayMessageLine("\nExiting the system...");
@@ -99,14 +114,43 @@ public class ATM {
 
    // display the main menu and return an input selection
    private int displayMainMenu() {
-      screen.displayMessageLine("\nMain menu:");
-      screen.displayMessageLine("1 - View my balance");
-      screen.displayMessageLine("2 - Withdraw cash");
-      screen.displayMessageLine("3 - Transfer funds");
-      screen.displayMessageLine("4 - Exit\n");
-      screen.displayMessage("Enter a choice: ");
-      return keypad.getInput(); // return user's selection
+      // Create a centered header
+      screen.displayMessageLine("\n");
+      screen.displayMessageLine(centerText("Please select a transaction", 72));
+      screen.displayMessageLine("\n");
+      
+      // Create 2x2 table for menu options
+      String line = "+----------------------------------+----------------------------------+";
+      screen.displayMessageLine(line);
+      
+      // Row 1: Balance (left) and Withdraw (right)
+      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
+      screen.displayMessageLine("|" + centerText("1. View Balance", 34) + "|" + centerText("2. Withdraw", 34) + "|");
+      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
+      screen.displayMessageLine(line);
+      
+      // Row 2: Transfer (left) and Exit (right)
+      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
+      screen.displayMessageLine("|" + centerText("3. Transfer", 34) + "|" + centerText("4. Exit", 34) + "|");
+      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
+      screen.displayMessageLine(line);
+      screen.displayMessageLine("");
+      
+      int choice;
+      if (gui != null) {
+         choice = gui.getMenuSelection();
+      } else {
+         choice = keypad.getInput();
+      }
+      return choice; // return user's selection
    } // end method displayMainMenu
+   
+   // Helper method to center text in a fixed width
+   private String centerText(String text, int width) {
+      int padding = (width - text.length()) / 2;
+      int paddingRight = width - text.length() - padding;
+      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
+   }
 
    // return object of specified Transaction subclass
    private Transaction createTransaction(int type) {
@@ -116,15 +160,15 @@ public class ATM {
       switch (type) {
          case BALANCE_INQUIRY: // create new BalanceInquiry transaction
             temp = new BalanceInquiry(
-                  currentAccountNumber, screen, bankDatabase);
+                  currentAccountNumber, screen, bankDatabase, gui);
             break;
          case WITHDRAWAL: // create new Withdrawal transaction
             temp = new Withdrawal(currentAccountNumber, screen,
-                  bankDatabase, keypad, cashDispenser);
+                  bankDatabase, keypad, cashDispenser, gui);
             break;
          case TRANSFER: // create new Transfer transaction
             temp = new Transfer(currentAccountNumber, screen,
-                  bankDatabase, keypad);
+                  bankDatabase, keypad, gui);
             break;
       } // end switch
 

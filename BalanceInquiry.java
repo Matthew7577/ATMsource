@@ -7,9 +7,17 @@ public class BalanceInquiry extends Transaction {
          BankDatabase atmBankDatabase) {
       super(userAccountNumber, atmScreen, atmBankDatabase);
    } // end BalanceInquiry constructor
+   
+   // BalanceInquiry constructor with GUI
+   public BalanceInquiry(int userAccountNumber, Screen atmScreen,
+         BankDatabase atmBankDatabase, ATMGUI gui) {
+      super(userAccountNumber, atmScreen, atmBankDatabase, gui);
+   } // end BalanceInquiry constructor
 
    // performs the transaction
    public void execute() {
+      clearScreen(); // clear screen when entering this transaction
+      
       // get references to bank database and screen
       BankDatabase bankDatabase = getBankDatabase();
       Screen screen = getScreen();
@@ -27,6 +35,14 @@ public class BalanceInquiry extends Transaction {
       screen.displayMessage("\n - Total balance:     ");
       screen.displayDollarAmount(totalBalance);
       screen.displayMessageLine("");
+      
+      // Prompt user to press ENTER to continue
+      screen.displayMessageLine("\nPress ENTER to return to main menu...");
+      
+      // Wait for user to press ENTER (getGUI will handle this)
+      if (getGUI() != null) {
+         getGUI().waitForEnter();
+      }
    } // end method execute
 } // end class BalanceInquiry
 
