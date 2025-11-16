@@ -16,6 +16,7 @@ public class ATMGUI extends JFrame {
     private JButton cashButton;  // Cash slot button
     private boolean cardInserted;  // Track if card is inserted
     private boolean allowCardRemoval;  // Track if card removal is allowed (only on exit)
+    private boolean waitingForCashTaken;  // Track if waiting for cash to be taken
     private String[] activeButtons;  // Track which side buttons are currently active
     private StringBuilder inputBuffer;
     private boolean waitingForInput;
@@ -27,6 +28,8 @@ public class ATMGUI extends JFrame {
     private boolean rightAlignInput; // When true, input is right-aligned
     private String inputPrefix; // Prefix that sticks with input (e.g., "HK$")
     private boolean menuSelectionMode; // When true, side buttons can be used
+    private Thread alertThread; // Track the alert timer thread
+    private volatile boolean alertDismissed; // Track if alert was manually dismissed
     
     // Color scheme for ATM
     private static final Color ATM_BACKGROUND = new Color(30, 30, 40);
@@ -39,7 +42,7 @@ public class ATMGUI extends JFrame {
     public ATMGUI() {
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1075, 750);
+        setSize(1065, 750);
         setLocationRelativeTo(null);
         setResizable(false);
         
@@ -47,6 +50,7 @@ public class ATMGUI extends JFrame {
         activeButtons = new String[0];
         cardInserted = false;
         allowCardRemoval = false;
+        waitingForCashTaken = false;
         waitingForInput = false;
         lastInput = "";
         isNumericInput = true;
@@ -151,9 +155,16 @@ public class ATMGUI extends JFrame {
     }
     
     private JPanel createCardAndCashButtons() {
-        JPanel panel = new JPanel(new GridLayout(2, 1, 5, 15));
-        panel.setBackground(ATM_BACKGROUND);
-        panel.setBorder(BorderFactory.createEmptyBorder(150, 5, 150, 5));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(ATM_BACKGROUND);
+        
+        // Vertical spacing to center the buttons
+        mainPanel.add(Box.createVerticalGlue(), BorderLayout.NORTH);
+        mainPanel.add(Box.createVerticalGlue(), BorderLayout.SOUTH);
+        
+        // Center panel for card and cash buttons
+        JPanel centerPanel = new JPanel(new GridLayout(2, 1, 5, 15));
+        centerPanel.setBackground(ATM_BACKGROUND);
         
         // Card slot button
         cardButton = new JButton("<html><center>CARD<br>SLOT</center></html>");
@@ -171,68 +182,80 @@ public class ATMGUI extends JFrame {
         cashButton.setFocusPainted(false);
         cashButton.setFont(new Font("Arial", Font.BOLD, 12));
         cashButton.setPreferredSize(new Dimension(70, 60));
-        cashButton.setEnabled(false); // Visual indicator only
+        cashButton.setEnabled(false); // Disabled by default
+        cashButton.addActionListener(e -> handleCashButton());
         
-        panel.add(cardButton);
-        panel.add(cashButton);
+        centerPanel.add(cardButton);
+        centerPanel.add(cashButton);
         
-        return panel;
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        
+        return mainPanel;
     }
     
     private void createKeypad() {
         keypadPanel = new JPanel(new BorderLayout(10, 10));
         keypadPanel.setBackground(ATM_BACKGROUND);
         
-        // Number pad (1-9, 0)
-        JPanel numberPanel = new JPanel(new GridLayout(4, 3, 5, 5));
-        numberPanel.setBackground(ATM_BACKGROUND);
+        // 4x4 grid: 3 columns for numpad + 1 column for control buttons
+        JPanel gridPanel = new JPanel(new GridLayout(4, 4, 5, 5));
+        gridPanel.setBackground(ATM_BACKGROUND);
         numberButtons = new JButton[10];
         
-        // Buttons 1-9
-        for (int i = 1; i <= 9; i++) {
+        // Row 1: 1, 2, 3, CLEAR
+        for (int i = 1; i <= 3; i++) {
             numberButtons[i] = createKeypadButton(String.valueOf(i));
-            numberPanel.add(numberButtons[i]);
+            gridPanel.add(numberButtons[i]);
         }
-        
-        // Bottom row: 00, 0, dot (.)
-        doubleZeroButton = createKeypadButton("00");
-        numberPanel.add(doubleZeroButton);
-        numberButtons[0] = createKeypadButton("0");
-        numberPanel.add(numberButtons[0]);
-        dotButton = createKeypadButton(".");
-        numberPanel.add(dotButton);
-        
-        // Control buttons panel
-        JPanel controlPanel = new JPanel(new GridLayout(1, 3, 5, 5));
-        controlPanel.setBackground(ATM_BACKGROUND);
-        
         clearButton = new JButton("CLEAR");
-        clearButton.setFont(new Font("Arial", Font.BOLD, 16));
+        clearButton.setFont(new Font("Arial", Font.BOLD, 14));
         clearButton.setBackground(CLEAR_BUTTON_COLOR);
         clearButton.setForeground(Color.WHITE);
         clearButton.setFocusPainted(false);
+        clearButton.setPreferredSize(new Dimension(100, 60));
         clearButton.addActionListener(e -> handleClear());
+        gridPanel.add(clearButton);
         
+        // Row 2: 4, 5, 6, CANCEL
+        for (int i = 4; i <= 6; i++) {
+            numberButtons[i] = createKeypadButton(String.valueOf(i));
+            gridPanel.add(numberButtons[i]);
+        }
         cancelButton = new JButton("CANCEL");
-        cancelButton.setFont(new Font("Arial", Font.BOLD, 16));
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
         cancelButton.setBackground(CANCEL_BUTTON_COLOR);
         cancelButton.setForeground(Color.WHITE);
         cancelButton.setFocusPainted(false);
+        cancelButton.setPreferredSize(new Dimension(100, 60));
         cancelButton.addActionListener(e -> handleCancel());
+        gridPanel.add(cancelButton);
         
+        // Row 3: 7, 8, 9, ENTER
+        for (int i = 7; i <= 9; i++) {
+            numberButtons[i] = createKeypadButton(String.valueOf(i));
+            gridPanel.add(numberButtons[i]);
+        }
         enterButton = new JButton("ENTER");
-        enterButton.setFont(new Font("Arial", Font.BOLD, 16));
+        enterButton.setFont(new Font("Arial", Font.BOLD, 14));
         enterButton.setBackground(ENTER_BUTTON_COLOR);
         enterButton.setForeground(Color.WHITE);
         enterButton.setFocusPainted(false);
+        enterButton.setPreferredSize(new Dimension(100, 60));
         enterButton.addActionListener(e -> handleEnter());
+        gridPanel.add(enterButton);
         
-        controlPanel.add(clearButton);
-        controlPanel.add(cancelButton);
-        controlPanel.add(enterButton);
+        // Row 4: 00, 0, dot, empty
+        doubleZeroButton = createKeypadButton("00");
+        gridPanel.add(doubleZeroButton);
+        numberButtons[0] = createKeypadButton("0");
+        gridPanel.add(numberButtons[0]);
+        dotButton = createKeypadButton(".");
+        gridPanel.add(dotButton);
+        JPanel emptyPanel = new JPanel();
+        emptyPanel.setBackground(ATM_BACKGROUND);
+        gridPanel.add(emptyPanel);
         
-        keypadPanel.add(numberPanel, BorderLayout.CENTER);
-        keypadPanel.add(controlPanel, BorderLayout.SOUTH);
+        keypadPanel.add(gridPanel, BorderLayout.CENTER);
     }
     
     private JButton createKeypadButton(String label) {
@@ -290,6 +313,15 @@ public class ATMGUI extends JFrame {
                 notifyAll();
             }
         }
+    }
+    
+    private synchronized void handleCashButton() {
+        // Dismiss alert when cash button is clicked
+        if (waitingForCashTaken) {
+            waitingForCashTaken = false;
+            notifyAll();
+        }
+        alertDismissed = true;
     }
     
     private void handleEnter() {
@@ -391,6 +423,12 @@ public class ATMGUI extends JFrame {
     public void showAlert(String title, String message, double seconds) {
         // Clear the screen first
         clearScreen();
+        alertDismissed = false;
+        
+        // Enable cash button if this is a cash dispensed alert
+        if (title.equals("Cash Dispensed")) {
+            SwingUtilities.invokeLater(() -> cashButton.setEnabled(true));
+        }
         
         SwingUtilities.invokeLater(() -> {
             // Calculate padding for centering
@@ -423,8 +461,26 @@ public class ATMGUI extends JFrame {
         });
         
         // Wait before dismissing (convert seconds to milliseconds)
+        // But allow early dismissal via cash button click
+        alertThread = new Thread(() -> {
+            try {
+                long waitTime = (long)(seconds * 1000);
+                long startTime = System.currentTimeMillis();
+                while (!alertDismissed && (System.currentTimeMillis() - startTime) < waitTime) {
+                    Thread.sleep(100); // Check every 100ms
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                // Disable cash button after alert is dismissed
+                SwingUtilities.invokeLater(() -> cashButton.setEnabled(false));
+            }
+        });
+        alertThread.start();
+        
+        // Wait for alert thread to complete
         try {
-            Thread.sleep((long)(seconds * 1000));
+            alertThread.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -737,5 +793,21 @@ public class ATMGUI extends JFrame {
             Thread.currentThread().interrupt();
         }
         allowCardRemoval = false; // Disable card removal after it's removed
+    }
+    
+    // Wait for cash to be taken from the slot
+    public synchronized void waitForCashTaken() {
+        waitingForCashTaken = true;
+        SwingUtilities.invokeLater(() -> cashButton.setEnabled(true));
+        
+        try {
+            while (waitingForCashTaken) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        SwingUtilities.invokeLater(() -> cashButton.setEnabled(false));
     }
 }

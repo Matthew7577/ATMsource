@@ -13,18 +13,6 @@ public class Withdrawal extends Transaction {
    // Withdrawal constructor
    public Withdrawal(int userAccountNumber, Screen atmScreen,
          BankDatabase atmBankDatabase, Keypad atmKeypad,
-         CashDispenser atmCashDispenser) {
-      // initialize superclass variables
-      super(userAccountNumber, atmScreen, atmBankDatabase);
-
-      // initialize references to keypad and cash dispenser
-      keypad = atmKeypad;
-      cashDispenser = atmCashDispenser;
-   } // end Withdrawal constructor
-   
-   // Withdrawal constructor with GUI
-   public Withdrawal(int userAccountNumber, Screen atmScreen,
-         BankDatabase atmBankDatabase, Keypad atmKeypad,
          CashDispenser atmCashDispenser, ATMGUI gui) {
       // initialize superclass variables
       super(userAccountNumber, atmScreen, atmBankDatabase, gui);
@@ -88,15 +76,12 @@ public class Withdrawal extends Transaction {
                      cashBreakdown += String.format("\nHK$100 bills: %d", (amount % 500) / 100);
                   }
                   
-                  // Show alert with cash dispensed message
-                  if (getGUI() != null) {
-                     getGUI().showAlert("Cash Dispensed", cashBreakdown, 2.0);
-                  } else {
-                     // For console mode, use regular display
-                     screen.displayMessageLine("\nPlease take your cash now.");
-                     screen.displayMessageLine("\nNumber of cash: \n" + cashBreakdown);
-                     pause(2000);
-                  }
+                  // Show alert with cash dispensed message and wait for cash to be taken
+                  getGUI().showAlert("Cash Dispensed", cashBreakdown, 0);
+                  getGUI().waitForCashTaken();
+                  
+                  // Clear screen after cash is taken
+                  clearScreen();
                } // end if
                else // cash dispenser does not have enough cash
                {
@@ -138,7 +123,7 @@ public class Withdrawal extends Transaction {
       // loop while no valid choice has been made
       while (userChoice == 0) {
          // display the menu in table format
-         screen.displayMessageLine("\n");
+         screen.displayMessageLine("\n\n");
          screen.displayMessageLine(centerText("Withdrawal Menu", 72));
          screen.displayMessageLine("\n\n");
          
@@ -160,12 +145,8 @@ public class Withdrawal extends Transaction {
          screen.displayMessageLine("│" + centerText("5. $5,000", 34) + "│" + centerText("6. Other amount", 34) + "│");
          screen.displayMessageLine(botLine);
 
-         int input;
-         if (getGUI() != null) {
-            input = getGUI().getWithdrawalMenuSelection(); // get input from GUI with side buttons
-         } else {
-            input = keypad.getInput(); // get user input through keypad
-         }
+         // Get input from GUI with side buttons
+         int input = getGUI().getWithdrawalMenuSelection();
 
          // determine how to proceed based on the input value
          switch (input) {
@@ -199,7 +180,7 @@ public class Withdrawal extends Transaction {
       int amount = 0;
 
       while (amount == 0) {
-         screen.displayMessageLine("\n\n\n\n\n");
+         screen.displayMessageLine("\n\n\n\n\n\n");
          screen.displayMessageLine(centerText("Please enter a withdrawal amount", 72));
          screen.displayMessageLine(centerText("(multiples of 100, 500, or 1000 only)", 72));
          screen.displayMessageLine("\n\n\n\n");

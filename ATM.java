@@ -164,9 +164,9 @@ public class ATM {
    // display the main menu and return an input selection
    private int displayMainMenu() {
       // Create a centered header
-      screen.displayMessageLine("\n");
+      screen.displayMessageLine("\n\n");
       screen.displayMessageLine(centerText("Please select an operations", 72));
-      screen.displayMessageLine("\n");
+      screen.displayMessageLine("\n\n");
       
       // Create 2x2 table for menu options
       String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";

@@ -4,12 +4,6 @@
 public class BalanceInquiry extends Transaction {
    // BalanceInquiry constructor
    public BalanceInquiry(int userAccountNumber, Screen atmScreen,
-         BankDatabase atmBankDatabase) {
-      super(userAccountNumber, atmScreen, atmBankDatabase);
-   } // end BalanceInquiry constructor
-   
-   // BalanceInquiry constructor with GUI
-   public BalanceInquiry(int userAccountNumber, Screen atmScreen,
          BankDatabase atmBankDatabase, ATMGUI gui) {
       super(userAccountNumber, atmScreen, atmBankDatabase, gui);
    } // end BalanceInquiry constructor
@@ -46,10 +40,8 @@ public class BalanceInquiry extends Transaction {
       // Prompt user to press ENTER to continue
       screen.displayMessageLine(centerText("Press ENTER to return to main menu...", 72));
       
-      // Wait for user to press ENTER (getGUI will handle this)
-      if (getGUI() != null) {
-         getGUI().waitForEnter();
-      }
+      // Wait for user to press ENTER
+      getGUI().waitForEnter();
    } // end method execute
 } // end class BalanceInquiry
 

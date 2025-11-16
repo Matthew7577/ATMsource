@@ -9,16 +9,6 @@ public class Transfer extends Transaction {
 
    // Transfer constructor
    public Transfer(int userAccountNumber, Screen atmScreen,
-         BankDatabase atmBankDatabase, Keypad atmKeypad) {
-      // initialize superclass variables
-      super(userAccountNumber, atmScreen, atmBankDatabase);
-
-      // initialize references to keypad
-      keypad = atmKeypad;
-   }
-   
-   // Transfer constructor with GUI
-   public Transfer(int userAccountNumber, Screen atmScreen,
          BankDatabase atmBankDatabase, Keypad atmKeypad, ATMGUI gui) {
       // initialize superclass variables
       super(userAccountNumber, atmScreen, atmBankDatabase, gui);
