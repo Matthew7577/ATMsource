@@ -12,6 +12,9 @@ public class ATMGUI extends JFrame {
     private JButton dotButton, doubleZeroButton;
     private JButton[] leftSideButtons;  // L1, L2, L3, L4
     private JButton[] rightSideButtons; // R1, R2, R3, R4
+    private JButton cardButton;  // Card slot button
+    private JButton cashButton;  // Cash slot button
+    private boolean cardInserted;  // Track if card is inserted
     private String[] activeButtons;  // Track which side buttons are currently active
     private StringBuilder inputBuffer;
     private boolean waitingForInput;
@@ -38,12 +41,13 @@ public class ATMGUI extends JFrame {
     public ATMGUI() {
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 750);
+        setSize(1075, 750);
         setLocationRelativeTo(null);
         setResizable(false);
         
         inputBuffer = new StringBuilder();
         activeButtons = new String[0];
+        cardInserted = false;
         waitingForInput = false;
         lastInput = "";
         isNumericInput = true;
@@ -79,6 +83,7 @@ public class ATMGUI extends JFrame {
         centerPanel.add(keypadPanel, BorderLayout.SOUTH);
         
         mainPanel.add(centerPanel, BorderLayout.CENTER);
+        mainPanel.add(createCardAndCashButtons(), BorderLayout.EAST);
         
         add(mainPanel);
         setVisible(true);
@@ -142,6 +147,35 @@ public class ATMGUI extends JFrame {
             rightSideButtons[i] = btn;
             panel.add(btn);
         }
+        
+        return panel;
+    }
+    
+    private JPanel createCardAndCashButtons() {
+        JPanel panel = new JPanel(new GridLayout(2, 1, 5, 15));
+        panel.setBackground(ATM_BACKGROUND);
+        panel.setBorder(BorderFactory.createEmptyBorder(150, 5, 150, 5));
+        
+        // Card slot button
+        cardButton = new JButton("<html><center>CARD<br>SLOT</center></html>");
+        cardButton.setBackground(new Color(50, 150, 50));
+        cardButton.setForeground(Color.WHITE);
+        cardButton.setFocusPainted(false);
+        cardButton.setFont(new Font("Arial", Font.BOLD, 12));
+        cardButton.setPreferredSize(new Dimension(70, 60));
+        cardButton.addActionListener(e -> handleCardButton());
+        
+        // Cash dispenser button
+        cashButton = new JButton("<html><center>CASH<br>SLOT</center></html>");
+        cashButton.setBackground(new Color(180, 120, 50));
+        cashButton.setForeground(Color.WHITE);
+        cashButton.setFocusPainted(false);
+        cashButton.setFont(new Font("Arial", Font.BOLD, 12));
+        cashButton.setPreferredSize(new Dimension(70, 60));
+        cashButton.setEnabled(false); // Visual indicator only
+        
+        panel.add(cardButton);
+        panel.add(cashButton);
         
         return panel;
     }
@@ -323,13 +357,13 @@ public class ATMGUI extends JFrame {
                     // Combine inputPrefix and input for right alignment
                     String combinedText = inputPrefix + inputText;
                     int combinedLen = combinedText.length();
-                    int paddingNeeded = totalWidth - combinedLen;
+                    int paddingNeeded = totalWidth - combinedLen - 1; // -1 for one space on right
                     
                     if (paddingNeeded > 0) {
                         String padding = String.format("%" + paddingNeeded + "s", "");
-                        displayArea.setText(beforeCurrentLine + padding + combinedText);
+                        displayArea.setText(beforeCurrentLine + padding + combinedText + " ");
                     } else {
-                        displayArea.setText(beforeCurrentLine + combinedText);
+                        displayArea.setText(beforeCurrentLine + combinedText + " ");
                     }
                 } else {
                     // Normal left-aligned input
@@ -635,5 +669,45 @@ public class ATMGUI extends JFrame {
             case "R4": return 6; // Other amount
             default: return -1;  // Button not mapped to any option
         }
+    }
+    
+    // Handle card button click
+    private synchronized void handleCardButton() {
+        if (!cardInserted) {
+            cardInserted = true;
+            notifyAll(); // Wake up waiting thread
+        }
+    }
+    
+    // Display card insertion screen
+    public void displayCardInsertionScreen() {
+        clearScreen();
+        int screenWidth = 72;
+        displayMessageLine("\n\n\n\n");
+        displayMessageLine(centerText("Welcome to use the ATM", screenWidth));
+        displayMessageLine("");
+        displayMessageLine(centerText("Please insert your card in slot", screenWidth));
+    }
+    
+    // Wait for card insertion
+    public synchronized boolean waitForCardInsertion() {
+        cardInserted = false;
+        waitingForInput = false; // Don't allow any input during card insertion
+        
+        try {
+            while (!cardInserted) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        
+        return cardInserted;
+    }
+    
+    // Reset card state (for logout)
+    public void resetCardState() {
+        cardInserted = false;
     }
 }

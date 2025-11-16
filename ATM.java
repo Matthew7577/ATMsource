@@ -36,6 +36,11 @@ public class ATM {
    public void run() {
       // welcome and authenticate user; perform transactions
       while (true) {
+         // Show pre-login screen and wait for card insertion
+         PreLoginScreen preLoginScreen = new PreLoginScreen(gui);
+         preLoginScreen.displayWelcomeScreen();
+         preLoginScreen.waitForCardInsertion();
+         
          // loop while user is not yet authenticated
          while (!userAuthenticated) {
             screen.displayMessageLine("\nWelcome!");
@@ -45,6 +50,9 @@ public class ATM {
          performTransactions(); // user is now authenticated
          userAuthenticated = false; // reset before next ATM session
          currentAccountNumber = 0; // reset before next ATM session
+         
+         // Reset card state for next session
+         gui.resetCardState();
       } // end while
    } // end method run
 
@@ -132,7 +140,7 @@ public class ATM {
    private int displayMainMenu() {
       // Create a centered header
       screen.displayMessageLine("\n");
-      screen.displayMessageLine(centerText("Please select a transaction", 72));
+      screen.displayMessageLine(centerText("Please select an operations", 72));
       screen.displayMessageLine("\n");
       
       // Create 2x2 table for menu options
