@@ -37,12 +37,16 @@ public class ATM {
          preLoginScreen.waitForCardInsertion();
          
          // loop while user is not yet authenticated
-         while (!userAuthenticated) {
+         boolean cancelled = false;
+         while (!userAuthenticated && !cancelled) {
             screen.displayMessageLine("\nWelcome!");
-            authenticateUser(); // authenticate user
+            cancelled = authenticateUser(); // authenticate user, returns true if cancelled
          } // end while
 
-         performTransactions(); // user is now authenticated
+         if (!cancelled) {
+            performTransactions(); // user is now authenticated
+         }
+         
          userAuthenticated = false; // reset before next ATM session
          currentAccountNumber = 0; // reset before next ATM session
          
@@ -52,11 +56,35 @@ public class ATM {
    } // end method run
 
    // attempts to authenticate user against database
-   private void authenticateUser() {
+   // returns true if user cancelled, false otherwise
+   private boolean authenticateUser() {
       screen.displayMessage("\nPlease enter your account number: ");
       int accountNumber = keypad.getInput(); // input account number
+      
+      // Check if user canceled
+      if (accountNumber == -1) {
+         if (gui != null) {
+            gui.clearScreen();
+            gui.showAlert("Session Cancelled", "Please take your card\nThank you for using our ATM", 0);
+            gui.waitForCardRemoval(); // Wait for user to take card
+            gui.clearScreen();
+         }
+         return true; // Return true to indicate cancellation
+      }
+      
       screen.displayMessage("\nEnter your PIN: "); // prompt for PIN
       int pin = keypad.getInputPassword(); // input PIN with masking
+      
+      // Check if user canceled
+      if (pin == -1) {
+         if (gui != null) {
+            gui.clearScreen();
+            gui.showAlert("Session Cancelled", "Please take your card\nThank you for using our ATM", 0);
+            gui.waitForCardRemoval(); // Wait for user to take card
+            gui.clearScreen();
+         }
+         return true; // Return true to indicate cancellation
+      }
 
       // set userAuthenticated to boolean value returned by database
       userAuthenticated = bankDatabase.authenticateUser(accountNumber, pin);
@@ -77,6 +105,7 @@ public class ATM {
                   "Invalid account number or PIN. Please try again.");
          }
       }
+      return false; // Return false to indicate no cancellation
    } // end method authenticateUser
 
    // display the main menu and perform transactions
