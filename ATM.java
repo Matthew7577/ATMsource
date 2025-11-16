@@ -26,11 +26,6 @@ public class ATM {
       cashDispenser = new CashDispenser(); // create cash dispenser
       bankDatabase = new BankDatabase(); // create acct info database
    } // end ATM constructor
-   
-   // no-argument ATM constructor initializes instance variables (for console mode)
-   public ATM() {
-      this(null); // call the other constructor with null GUI
-   } // end no-argument ATM constructor
 
    // start ATM
    public void run() {
@@ -75,7 +70,7 @@ public class ATM {
       } // end if
       else {
          if (gui != null) {
-            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again");
+            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
             gui.clearScreen(); // clear screen after alert
          } else {
             screen.displayMessageLine(
@@ -116,7 +111,8 @@ public class ATM {
             case EXIT: // user chose to terminate session
                if (gui != null) {
                   gui.clearScreen();
-                  gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM");
+                  gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM", 0);
+                  gui.waitForCardRemoval(); // Wait for user to take card
                   gui.clearScreen();
                } else {
                   screen.displayMessageLine("\nExiting the system...");
@@ -125,7 +121,7 @@ public class ATM {
                break;
             default: // user did not enter an integer from 1-4
                if (gui != null) {
-                  gui.showAlert("Invalid Selection", "Please select a valid option (1-4).");
+                  gui.showAlert("Invalid Selection", "Please select a valid option (1-4).", 2.0);
                   gui.clearScreen();
                } else {
                   screen.displayMessageLine(

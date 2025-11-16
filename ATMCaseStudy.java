@@ -4,7 +4,8 @@
 public class ATMCaseStudy {
    // main method creates and runs the ATM
    public static void main(String[] args) {
-      ATM theATM = new ATM();
+      ATMGUI gui = new ATMGUI();
+      ATM theATM = new ATM(gui);
       theATM.run();
    } // end main
 } // end class ATMCaseStudy

@@ -61,6 +61,13 @@ public abstract class Transaction {
       }
    } // end method pause
 
+   // Helper method to center text within a fixed width
+   protected String centerText(String text, int width) {
+      int padding = (width - text.length()) / 2;
+      int paddingRight = width - text.length() - padding;
+      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
+   } // end method centerText
+
    // perform the transaction (overridden by each subclass)
    abstract public void execute();
 } // end class Transaction

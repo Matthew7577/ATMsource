@@ -15,6 +15,7 @@ public class ATMGUI extends JFrame {
     private JButton cardButton;  // Card slot button
     private JButton cashButton;  // Cash slot button
     private boolean cardInserted;  // Track if card is inserted
+    private boolean allowCardRemoval;  // Track if card removal is allowed (only on exit)
     private String[] activeButtons;  // Track which side buttons are currently active
     private StringBuilder inputBuffer;
     private boolean waitingForInput;
@@ -35,9 +36,6 @@ public class ATMGUI extends JFrame {
     private static final Color CANCEL_BUTTON_COLOR = new Color(180, 50, 50);
     private static final Color CLEAR_BUTTON_COLOR = new Color(200, 150, 50);
     
-    // Alert settings
-    private static final int ALERT_DISPLAY_SECOND = 2000; // Duration in milliseconds (2000 = 2 seconds)
-    
     public ATMGUI() {
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -48,6 +46,7 @@ public class ATMGUI extends JFrame {
         inputBuffer = new StringBuilder();
         activeButtons = new String[0];
         cardInserted = false;
+        allowCardRemoval = false;
         waitingForInput = false;
         lastInput = "";
         isNumericInput = true;
@@ -158,7 +157,7 @@ public class ATMGUI extends JFrame {
         
         // Card slot button
         cardButton = new JButton("<html><center>CARD<br>SLOT</center></html>");
-        cardButton.setBackground(new Color(50, 150, 50));
+        cardButton.setBackground(new Color(180, 50, 50)); // Red when no card
         cardButton.setForeground(Color.WHITE);
         cardButton.setFocusPainted(false);
         cardButton.setFont(new Font("Arial", Font.BOLD, 12));
@@ -389,7 +388,7 @@ public class ATMGUI extends JFrame {
         SwingUtilities.invokeLater(() -> displayArea.setText(""));
     }
     
-    public void showAlert(String title, String message) {
+    public void showAlert(String title, String message, double seconds) {
         // Clear the screen first
         clearScreen();
         
@@ -423,9 +422,9 @@ public class ATMGUI extends JFrame {
             displayArea.setCaretPosition(displayArea.getDocument().getLength());
         });
         
-        // Wait before dismissing
+        // Wait before dismissing (convert seconds to milliseconds)
         try {
-            Thread.sleep(ALERT_DISPLAY_SECOND);
+            Thread.sleep((long)(seconds * 1000));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -674,9 +673,22 @@ public class ATMGUI extends JFrame {
     // Handle card button click
     private synchronized void handleCardButton() {
         if (!cardInserted) {
+            // Card insertion
             cardInserted = true;
+            SwingUtilities.invokeLater(() -> {
+                cardButton.setBackground(new Color(50, 150, 50)); // Green when card inserted
+            });
             notifyAll(); // Wake up waiting thread
+        } else if (allowCardRemoval) {
+            // Card removal (only allowed during exit)
+            cardInserted = false;
+            allowCardRemoval = false;
+            SwingUtilities.invokeLater(() -> {
+                cardButton.setBackground(new Color(180, 50, 50)); // Red when card removed
+            });
+            notifyAll(); // Wake up waiting thread for card removal
         }
+        // If card is inserted but removal not allowed, do nothing (button stays green)
     }
     
     // Display card insertion screen
@@ -707,7 +719,23 @@ public class ATMGUI extends JFrame {
     }
     
     // Reset card state (for logout)
-    public void resetCardState() {
+    public synchronized void resetCardState() {
         cardInserted = false;
+        SwingUtilities.invokeLater(() -> {
+            cardButton.setBackground(new Color(180, 50, 50)); // Red when no card
+        });
+    }
+    
+    // Wait for card to be removed (after exit)
+    public synchronized void waitForCardRemoval() {
+        allowCardRemoval = true; // Enable card removal
+        try {
+            while (cardInserted) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        allowCardRemoval = false; // Disable card removal after it's removed
     }
 }

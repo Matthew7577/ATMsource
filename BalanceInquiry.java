@@ -51,13 +51,6 @@ public class BalanceInquiry extends Transaction {
          getGUI().waitForEnter();
       }
    } // end method execute
-   
-   // Helper method to center text
-   private String centerText(String text, int width) {
-      int padding = (width - text.length()) / 2;
-      int paddingRight = width - text.length() - padding;
-      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
-   }
 } // end class BalanceInquiry
 
 /**************************************************************************

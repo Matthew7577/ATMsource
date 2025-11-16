@@ -90,7 +90,7 @@ public class Withdrawal extends Transaction {
                   
                   // Show alert with cash dispensed message
                   if (getGUI() != null) {
-                     getGUI().showAlert("Cash Dispensed", cashBreakdown);
+                     getGUI().showAlert("Cash Dispensed", cashBreakdown, 2.0);
                   } else {
                      // For console mode, use regular display
                      screen.displayMessageLine("\nPlease take your cash now.");
@@ -219,13 +219,6 @@ public class Withdrawal extends Transaction {
 
       return amount;
    } // end method displayMenuOfAmounts
-   
-   // Helper method to center text
-      private String centerText(String text, int width) {
-      int padding = (width - text.length()) / 2;
-      int paddingRight = width - text.length() - padding;
-      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
-   }
 } // end class Withdrawal
 
 /**************************************************************************
