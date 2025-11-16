@@ -27,23 +27,37 @@ public class BalanceInquiry extends Transaction {
 
       // get the total balance for the account involved
       double totalBalance = bankDatabase.getTotalBalance(getAccountNumber());
+      
+      // get the account type
+      String accountType = bankDatabase.getAccountTypeName(getAccountNumber());
 
-      // display the balance information on the screen
-      screen.displayMessageLine("\nBalance Information:");
-      screen.displayMessage(" - Available balance: ");
-      screen.displayDollarAmount(availableBalance);
-      screen.displayMessage("\n - Total balance:     ");
-      screen.displayDollarAmount(totalBalance);
+      // display the balance information on the screen centered
+      screen.displayMessageLine("\n\n");
+      screen.displayMessageLine(centerText("Balance Information", 72));
+      screen.displayMessageLine("");
+      screen.displayMessageLine(centerText("Account Number: " + getAccountNumber(), 72));
+      screen.displayMessageLine(centerText("Account Type: " + accountType, 72));
+      screen.displayMessageLine("");
+      screen.displayMessageLine(centerText(String.format("Available balance: HK$%.2f", availableBalance), 72));
+      screen.displayMessageLine(centerText(String.format("Total balance: HK$%.2f", totalBalance), 72));
+      screen.displayMessageLine("");
       screen.displayMessageLine("");
       
       // Prompt user to press ENTER to continue
-      screen.displayMessageLine("\nPress ENTER to return to main menu...");
+      screen.displayMessageLine(centerText("Press ENTER to return to main menu...", 72));
       
       // Wait for user to press ENTER (getGUI will handle this)
       if (getGUI() != null) {
          getGUI().waitForEnter();
       }
    } // end method execute
+   
+   // Helper method to center text
+   private String centerText(String text, int width) {
+      int padding = (width - text.length()) / 2;
+      int paddingRight = width - text.length() - padding;
+      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
+   }
 } // end class BalanceInquiry
 
 /**************************************************************************

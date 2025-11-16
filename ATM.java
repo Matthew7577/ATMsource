@@ -45,7 +45,6 @@ public class ATM {
          performTransactions(); // user is now authenticated
          userAuthenticated = false; // reset before next ATM session
          currentAccountNumber = 0; // reset before next ATM session
-         screen.displayMessageLine("\nThank you! Goodbye!");
       } // end while
    } // end method run
 
@@ -66,9 +65,15 @@ public class ATM {
             gui.clearScreen(); // clear screen after successful login
          }
       } // end if
-      else
-         screen.displayMessageLine(
-               "Invalid account number or PIN. Please try again.");
+      else {
+         if (gui != null) {
+            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again");
+            gui.clearScreen(); // clear screen after alert
+         } else {
+            screen.displayMessageLine(
+                  "Invalid account number or PIN. Please try again.");
+         }
+      }
    } // end method authenticateUser
 
    // display the main menu and perform transactions
@@ -101,12 +106,23 @@ public class ATM {
                }
                break;
             case EXIT: // user chose to terminate session
-               screen.displayMessageLine("\nExiting the system...");
+               if (gui != null) {
+                  gui.clearScreen();
+                  gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM");
+                  gui.clearScreen();
+               } else {
+                  screen.displayMessageLine("\nExiting the system...");
+               }
                userExited = true; // this ATM session should end
                break;
             default: // user did not enter an integer from 1-4
-               screen.displayMessageLine(
-                     "\nYou did not enter a valid selection. Try again.");
+               if (gui != null) {
+                  gui.showAlert("Invalid Selection", "Please select a valid option (1-4).");
+                  gui.clearScreen();
+               } else {
+                  screen.displayMessageLine(
+                        "\nYou did not enter a valid selection. Try again.");
+               }
                break;
          } // end switch
       } // end while
@@ -120,20 +136,22 @@ public class ATM {
       screen.displayMessageLine("\n");
       
       // Create 2x2 table for menu options
-      String line = "+----------------------------------+----------------------------------+";
-      screen.displayMessageLine(line);
+      String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
+      String midLine = "├──────────────────────────────────┼──────────────────────────────────┤";
+      String botLine = "└──────────────────────────────────┴──────────────────────────────────┘";
+      screen.displayMessageLine(topLine);
       
       // Row 1: Balance (left) and Withdraw (right)
-      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
-      screen.displayMessageLine("|" + centerText("1. View Balance", 34) + "|" + centerText("2. Withdraw", 34) + "|");
-      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
-      screen.displayMessageLine(line);
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine("│" + centerText("1. View Balance", 34) + "│" + centerText("2. Withdraw", 34) + "│");
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine(midLine);
       
       // Row 2: Transfer (left) and Exit (right)
-      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
-      screen.displayMessageLine("|" + centerText("3. Transfer", 34) + "|" + centerText("4. Exit", 34) + "|");
-      screen.displayMessageLine("|" + centerText("", 34) + "|" + centerText("", 34) + "|");
-      screen.displayMessageLine(line);
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine("│" + centerText("3. Transfer", 34) + "│" + centerText("4. Exit", 34) + "│");
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine(botLine);
       screen.displayMessageLine("");
       
       int choice;

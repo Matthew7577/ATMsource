@@ -25,6 +25,17 @@ public class BankDatabase {
       Account account = getAccount(accountNumber);
       return account instanceof ChequeAccount;
    } // end method isChequeAccount
+   
+   // get account type name
+   public String getAccountTypeName(int accountNumber) {
+      Account account = getAccount(accountNumber);
+      if (account instanceof SavingAccount) {
+         return "Saving Account";
+      } else if (account instanceof ChequeAccount) {
+         return "Cheque Account";
+      }
+      return "Unknown";
+   } // end method getAccountTypeName
 
    // get interest rate for a saving account
    public double getInterestRate(int accountNumber) {

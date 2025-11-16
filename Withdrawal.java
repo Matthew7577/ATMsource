@@ -76,23 +76,27 @@ public class Withdrawal extends Transaction {
                   cashDispenser.dispenseCash(amount); // dispense cash
                   cashDispensed = true; // cash was dispensed
 
-                  // instruct user to take cash
-                  screen.displayMessageLine(
-                        "\nPlease take your cash now.");
-
-                  // display number of cash
-                  screen.displayMessageLine(
-                        "\nNumber of cash: \n" +
-                        ((amount / 1000) > 0 ? String.format("HK$1000 bills: %d  "
-                              , amount / 1000) : "") +
-                        (((amount % 1000) / 500) > 0 ? String.format("HK$500 bills: %d  "
-                              , (amount % 1000) / 500) : "") +
-                        (((amount % 500) / 100) > 0 ? String.format("HK$100 bills: %d"
-                              , (amount % 500) / 100) : "")
-                  );
+                  // Build cash breakdown message with line breaks
+                  String cashBreakdown = "Please take your cash now";
+                  if (amount / 1000 > 0) {
+                     cashBreakdown += String.format("\n\nHK$1000 bills: %d", amount / 1000);
+                  }
+                  if ((amount % 1000) / 500 > 0) {
+                     cashBreakdown += String.format("\nHK$500 bills: %d", (amount % 1000) / 500);
+                  }
+                  if ((amount % 500) / 100 > 0) {
+                     cashBreakdown += String.format("\nHK$100 bills: %d", (amount % 500) / 100);
+                  }
                   
-                  // Pause for 2 seconds to show the success message
-                  pause(2000);
+                  // Show alert with cash dispensed message
+                  if (getGUI() != null) {
+                     getGUI().showAlert("Cash Dispensed", cashBreakdown);
+                  } else {
+                     // For console mode, use regular display
+                     screen.displayMessageLine("\nPlease take your cash now.");
+                     screen.displayMessageLine("\nNumber of cash: \n" + cashBreakdown);
+                     pause(2000);
+                  }
                } // end if
                else // cash dispenser does not have enough cash
                {
@@ -133,17 +137,35 @@ public class Withdrawal extends Transaction {
 
       // loop while no valid choice has been made
       while (userChoice == 0) {
-         // display the menu
-         screen.displayMessageLine("\n" + padRight("1. $200", 40) + "  <");
-         screen.displayMessageLine(padRight("2. $500", 40) + "  <");
-         screen.displayMessageLine(padRight("3. $1,000", 40) + "  <");
-         screen.displayMessageLine(padRight("4. $2,000", 40) + "  <");
-         screen.displayMessageLine("" + padRight("", 40) + "  >");
-         screen.displayMessageLine("" + padRight("", 40) + ">  5. $5,000");
-         screen.displayMessageLine("" + padRight("", 40) + ">  6. Other amount");
-         screen.displayMessage("\nChoose a withdrawal option (or press CANCEL): ");
+         // display the menu in table format
+         screen.displayMessageLine("\n");
+         screen.displayMessageLine(centerText("Withdrawal Menu", 72));
+         screen.displayMessageLine("\n\n");
+         
+         // Create 2x3 table for menu options
+         String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
+         String midLine = "├──────────────────────────────────┼──────────────────────────────────┤";
+         String botLine = "└──────────────────────────────────┴──────────────────────────────────┘";
+         screen.displayMessageLine(topLine);
+         
+         // Row 1: $200 (left) and $500 (right)
+         screen.displayMessageLine("│" + centerText("1. $200", 34) + "│" + centerText("2. $500", 34) + "│");
+         screen.displayMessageLine(midLine);
+         
+         // Row 2: $1,000 (left) and $2,000 (right)
+         screen.displayMessageLine("│" + centerText("3. $1,000", 34) + "│" + centerText("4. $2,000", 34) + "│");
+         screen.displayMessageLine(midLine);
+         
+         // Row 3: $5,000 (left) and Other amount (right)
+         screen.displayMessageLine("│" + centerText("5. $5,000", 34) + "│" + centerText("6. Other amount", 34) + "│");
+         screen.displayMessageLine(botLine);
 
-         int input = keypad.getInput(); // get user input through keypad
+         int input;
+         if (getGUI() != null) {
+            input = getGUI().getWithdrawalMenuSelection(); // get input from GUI with side buttons
+         } else {
+            input = keypad.getInput(); // get user input through keypad
+         }
 
          // determine how to proceed based on the input value
          switch (input) {
@@ -198,20 +220,11 @@ public class Withdrawal extends Transaction {
       return amount;
    } // end method displayMenuOfAmounts
    
-   // Helper method to pad string to right
-   private String padRight(String s, int n) {
-      return String.format("%-" + n + "s", s);
-   }
-   
    // Helper method to center text
-   private String centerText(String text, int width) {
+      private String centerText(String text, int width) {
       int padding = (width - text.length()) / 2;
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < padding; i++) {
-         sb.append(" ");
-      }
-      sb.append(text);
-      return sb.toString();
+      int paddingRight = width - text.length() - padding;
+      return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
    }
 } // end class Withdrawal
 

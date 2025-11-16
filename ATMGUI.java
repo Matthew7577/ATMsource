@@ -10,6 +10,9 @@ public class ATMGUI extends JFrame {
     private JButton[] numberButtons;
     private JButton clearButton, enterButton, cancelButton;
     private JButton dotButton, doubleZeroButton;
+    private JButton[] leftSideButtons;  // L1, L2, L3, L4
+    private JButton[] rightSideButtons; // R1, R2, R3, R4
+    private String[] activeButtons;  // Track which side buttons are currently active
     private StringBuilder inputBuffer;
     private boolean waitingForInput;
     private String lastInput;
@@ -18,8 +21,8 @@ public class ATMGUI extends JFrame {
     private int inputStartPosition; // Track where input starts on screen
     private boolean instantMenuMode; // When true, number buttons auto-submit
     private boolean rightAlignInput; // When true, input is right-aligned
-    private String promptPrefix; // Store the prompt prefix (e.g., "HK$")
     private String inputPrefix; // Prefix that sticks with input (e.g., "HK$")
+    private boolean menuSelectionMode; // When true, side buttons can be used
     
     // Color scheme for ATM
     private static final Color ATM_BACKGROUND = new Color(30, 30, 40);
@@ -29,6 +32,9 @@ public class ATMGUI extends JFrame {
     private static final Color CANCEL_BUTTON_COLOR = new Color(180, 50, 50);
     private static final Color CLEAR_BUTTON_COLOR = new Color(200, 150, 50);
     
+    // Alert settings
+    private static final int ALERT_DISPLAY_SECOND = 2000; // Duration in milliseconds (2000 = 2 seconds)
+    
     public ATMGUI() {
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -37,6 +43,7 @@ public class ATMGUI extends JFrame {
         setResizable(false);
         
         inputBuffer = new StringBuilder();
+        activeButtons = new String[0];
         waitingForInput = false;
         lastInput = "";
         isNumericInput = true;
@@ -44,8 +51,8 @@ public class ATMGUI extends JFrame {
         inputStartPosition = 0;
         instantMenuMode = false;
         rightAlignInput = false;
-        promptPrefix = "";
         inputPrefix = "";
+        menuSelectionMode = false;
         
         // Main panel with ATM background
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -95,8 +102,10 @@ public class ATMGUI extends JFrame {
         JPanel panel = new JPanel(new GridLayout(4, 1, 5, 10));
         panel.setBackground(ATM_BACKGROUND);
         
-        // Left buttons: top=5, second=6, third=1(View Balance), bottom=3(Transfer)
-        int[] leftOptions = {5, 6, 1, 3};
+        leftSideButtons = new JButton[4];
+        
+        // Left buttons: L1, L2, L3, L4 (top to bottom)
+        String[] leftPositions = {"L1", "L2", "L3", "L4"};
         for (int i = 0; i < 4; i++) {
             JButton btn = new JButton("<");
             btn.setBackground(BUTTON_COLOR);
@@ -104,8 +113,9 @@ public class ATMGUI extends JFrame {
             btn.setFocusPainted(false);
             btn.setFont(new Font("Arial", Font.BOLD, 16));
             btn.setPreferredSize(new Dimension(60, 40));
-            final int option = leftOptions[i];
-            btn.addActionListener(e -> handleSideButton(option));
+            final String position = leftPositions[i];
+            btn.addActionListener(e -> handleSideButton(position));
+            leftSideButtons[i] = btn;
             panel.add(btn);
         }
         
@@ -116,8 +126,10 @@ public class ATMGUI extends JFrame {
         JPanel panel = new JPanel(new GridLayout(4, 1, 5, 10));
         panel.setBackground(ATM_BACKGROUND);
         
-        // Right buttons: top=7, second=8, third=2(Withdraw), bottom=4(Exit)
-        int[] rightOptions = {7, 8, 2, 4};
+        rightSideButtons = new JButton[4];
+        
+        // Right buttons: R1, R2, R3, R4 (top to bottom)
+        String[] rightPositions = {"R1", "R2", "R3", "R4"};
         for (int i = 0; i < 4; i++) {
             JButton btn = new JButton(">");
             btn.setBackground(BUTTON_COLOR);
@@ -125,8 +137,9 @@ public class ATMGUI extends JFrame {
             btn.setFocusPainted(false);
             btn.setFont(new Font("Arial", Font.BOLD, 16));
             btn.setPreferredSize(new Dimension(60, 40));
-            final int option = rightOptions[i];
-            btn.addActionListener(e -> handleSideButton(option));
+            final String position = rightPositions[i];
+            btn.addActionListener(e -> handleSideButton(position));
+            rightSideButtons[i] = btn;
             panel.add(btn);
         }
         
@@ -259,14 +272,35 @@ public class ATMGUI extends JFrame {
         }
     }
     
-    private void handleSideButton(int option) {
-        if (waitingForInput) {
-            lastInput = String.valueOf(option);
-            waitingForInput = false;
-            synchronized (this) {
-                notifyAll();
+    private synchronized void handleSideButton(String position) {
+        // Only process if button is in the active array and we're waiting for menu input
+        if (!waitingForInput || !menuSelectionMode || !isButtonActive(position)) {
+            return; // Silently ignore inactive button presses
+        }
+        
+        lastInput = position;
+        waitingForInput = false;
+        notifyAll();
+    }
+    
+    // Check if a button position is in the active buttons array
+    private boolean isButtonActive(String position) {
+        for (String active : activeButtons) {
+            if (active.equals(position)) {
+                return true;
             }
         }
+        return false;
+    }
+    
+    // Set which side buttons are currently active (responsive to clicks)
+    public void setActiveSideButtons(String... positions) {
+        activeButtons = positions;
+    }
+    
+    // Clear all active side buttons
+    public void clearActiveSideButtons() {
+        activeButtons = new String[0];
     }
     
     private void updateInputDisplay() {
@@ -319,6 +353,64 @@ public class ATMGUI extends JFrame {
     
     public void clearScreen() {
         SwingUtilities.invokeLater(() -> displayArea.setText(""));
+    }
+    
+    public void showAlert(String title, String message) {
+        // Clear the screen first
+        clearScreen();
+        
+        SwingUtilities.invokeLater(() -> {
+            // Calculate padding for centering
+            int screenWidth = 72;
+            int boxWidth = 60;
+            
+            // Split message into multiple lines if it contains newlines
+            String[] messageLines = message.split("\n");
+            
+            // Create centered box with alert message
+            String topBorder = centerText("╔" + repeatChar('═', boxWidth - 2) + "╗", screenWidth);
+            String titleLine = centerText("║ " + centerText(title, boxWidth - 4) + " ║", screenWidth);
+            String separator = centerText("║" + repeatChar('─', boxWidth - 2) + "║", screenWidth);
+            String bottomBorder = centerText("╚" + repeatChar('═', boxWidth - 2) + "╝", screenWidth);
+            
+            // Add vertical spacing and display alert (centered vertically too)
+            displayArea.append("\n\n\n\n");
+            displayArea.append(topBorder + "\n");
+            displayArea.append(titleLine + "\n");
+            displayArea.append(separator + "\n");
+            
+            // Display each message line
+            for (String line : messageLines) {
+                String msgLine = centerText("║ " + centerText(line, boxWidth - 4) + " ║", screenWidth);
+                displayArea.append(msgLine + "\n");
+            }
+            
+            displayArea.append(bottomBorder + "\n");
+            displayArea.setCaretPosition(displayArea.getDocument().getLength());
+        });
+        
+        // Wait before dismissing
+        try {
+            Thread.sleep(ALERT_DISPLAY_SECOND);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    // Helper method to repeat a character n times
+    private String repeatChar(char c, int count) {
+        StringBuilder sb = new StringBuilder(count);
+        for (int i = 0; i < count; i++) {
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+    
+    // Helper method to center text within a fixed width
+    private String centerText(String text, int width) {
+        int padding = (width - text.length()) / 2;
+        int paddingRight = width - text.length() - padding;
+        return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
     }
     
     public synchronized void waitForEnter() {
@@ -422,9 +514,13 @@ public class ATMGUI extends JFrame {
         isNumericInput = true;  // Allow keypad input for menu
         isPasswordMode = false;
         instantMenuMode = true; // Enable instant submission for menu
+        menuSelectionMode = true; // Enable side buttons for menu
         inputBuffer.setLength(0);
         lastInput = "";
         waitingForInput = true;
+        
+        // Enable only the buttons used in main menu (L3, R3, L4, R4)
+        setActiveSideButtons("L3", "R3", "L4", "R4");
         
         // Capture input start position after any pending display updates
         SwingUtilities.invokeLater(() -> {
@@ -441,14 +537,103 @@ public class ATMGUI extends JFrame {
         }
         
         instantMenuMode = false; // Disable instant mode after selection
+        menuSelectionMode = false; // Disable side buttons after selection
+        clearActiveSideButtons(); // Clear active buttons after menu selection
         
         if ("CANCEL".equals(lastInput) || lastInput.isEmpty()) {
             return -1;
         }
+        
+        // Map button positions to menu options for main menu
+        // Main menu has options at L3=1, R3=2, L4=3, R4=4
+        int selection = mapButtonPositionToMainMenuOption(lastInput);
+        if (selection != -1) {
+            return selection;
+        }
+        
+        // If not a button position, try to parse as direct number input
         try {
             return Integer.parseInt(lastInput);
         } catch (NumberFormatException e) {
             return -1;
+        }
+    }
+    
+    // Map button position (L1-L4, R1-R4) to main menu options
+    // This method is specifically for the main menu screen layout
+    private int mapButtonPositionToMainMenuOption(String position) {
+        // Main menu layout: L3=1, R3=2, L4=3, R4=4
+        switch (position) {
+            case "L3": return 1; // View Balance
+            case "R3": return 2; // Withdraw
+            case "L4": return 3; // Transfer
+            case "R4": return 4; // Exit
+            default: return -1;  // Button not mapped to any option
+        }
+    }
+    
+    // Get menu selection for withdrawal menu with side buttons
+    public synchronized int getWithdrawalMenuSelection() {
+        // For withdrawal menu selections, allow both side buttons and keypad
+        isNumericInput = true;  // Allow keypad input for menu
+        isPasswordMode = false;
+        instantMenuMode = true; // Enable instant submission for menu
+        menuSelectionMode = true; // Enable side buttons for menu
+        inputBuffer.setLength(0);
+        lastInput = "";
+        waitingForInput = true;
+        
+        // Enable buttons used in withdrawal menu (L2, R2, L3, R3, L4, R4)
+        setActiveSideButtons("L2", "R2", "L3", "R3", "L4", "R4");
+        
+        // Capture input start position after any pending display updates
+        SwingUtilities.invokeLater(() -> {
+            inputStartPosition = displayArea.getText().length();
+        });
+        
+        try {
+            while (waitingForInput) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return -1;
+        }
+        
+        instantMenuMode = false; // Disable instant mode after selection
+        menuSelectionMode = false; // Disable side buttons after selection
+        clearActiveSideButtons(); // Clear active buttons after menu selection
+        
+        if ("CANCEL".equals(lastInput) || lastInput.isEmpty()) {
+            return -1;
+        }
+        
+        // Map button positions to withdrawal menu options
+        // Withdrawal menu: L2=1, R2=2, L3=3, R3=4, L4=5, R4=6
+        int selection = mapButtonPositionToWithdrawalMenuOption(lastInput);
+        if (selection != -1) {
+            return selection;
+        }
+        
+        // If not a button position, try to parse as direct number input
+        try {
+            return Integer.parseInt(lastInput);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+    
+    // Map button position to withdrawal menu options
+    private int mapButtonPositionToWithdrawalMenuOption(String position) {
+        // Withdrawal menu layout: L2=1, R2=2, L3=3, R3=4, L4=5, R4=6
+        switch (position) {
+            case "L2": return 1; // $200
+            case "R2": return 2; // $500
+            case "L3": return 3; // $1,000
+            case "R3": return 4; // $2,000
+            case "L4": return 5; // $5,000
+            case "R4": return 6; // Other amount
+            default: return -1;  // Button not mapped to any option
         }
     }
 }
