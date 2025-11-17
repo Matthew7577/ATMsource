@@ -15,6 +15,7 @@ public class ATM {
    private static final int WITHDRAWAL = 2;
    private static final int TRANSFER = 3;
    private static final int EXIT = 4;
+   private final static int EMPTY = -2; // constant for empty input
 
    // Constructor that accepts GUI reference
    public ATM(ATMGUI gui) {
@@ -35,7 +36,7 @@ public class ATM {
          PreLoginScreen preLoginScreen = new PreLoginScreen(gui);
          preLoginScreen.displayWelcomeScreen();
          preLoginScreen.waitForCardInsertion();
-         
+
          // loop while user is not yet authenticated
          boolean cancelled = false;
          while (!userAuthenticated && !cancelled) {
@@ -46,10 +47,10 @@ public class ATM {
          if (!cancelled) {
             performTransactions(); // user is now authenticated
          }
-         
+
          userAuthenticated = false; // reset before next ATM session
          currentAccountNumber = 0; // reset before next ATM session
-         
+
          // Reset card state for next session
          gui.resetCardState();
       } // end while
@@ -60,7 +61,7 @@ public class ATM {
    private boolean authenticateUser() {
       screen.displayMessage("\nPlease enter your account number: ");
       int accountNumber = keypad.getInput(); // input account number
-      
+
       // Check if user canceled
       if (accountNumber == -1) {
          if (gui != null) {
@@ -71,10 +72,22 @@ public class ATM {
          }
          return true; // Return true to indicate cancellation
       }
-      
+
+      // Check if empty input (treat as invalid login)
+      if (accountNumber == EMPTY) {
+         if (gui != null) {
+            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
+            gui.clearScreen(); // clear screen after alert
+         } else {
+            screen.displayMessageLine(
+                  "Invalid account number or PIN. Please try again.");
+         }
+         return false; // Return false to allow retry
+      }
+
       screen.displayMessage("\nEnter your PIN: "); // prompt for PIN
       int pin = keypad.getInputPassword(); // input PIN with masking
-      
+
       // Check if user canceled
       if (pin == -1) {
          if (gui != null) {
@@ -84,6 +97,18 @@ public class ATM {
             gui.clearScreen();
          }
          return true; // Return true to indicate cancellation
+      }
+
+      // Check if empty input (treat as invalid login)
+      if (pin == EMPTY) {
+         if (gui != null) {
+            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
+            gui.clearScreen(); // clear screen after alert
+         } else {
+            screen.displayMessageLine(
+                  "Invalid account number or PIN. Please try again.");
+         }
+         return false; // Return false to allow retry
       }
 
       // set userAuthenticated to boolean value returned by database
@@ -131,7 +156,7 @@ public class ATM {
                currentTransaction = createTransaction(mainMenuSelection);
 
                currentTransaction.execute(); // execute transaction
-               
+
                // Clear screen after transaction completes for clean menu display
                if (gui != null) {
                   gui.clearScreen();
@@ -167,26 +192,26 @@ public class ATM {
       screen.displayMessageLine("\n\n");
       screen.displayMessageLine(centerText("Please select an operations", 72));
       screen.displayMessageLine("\n\n");
-      
+
       // Create 2x2 table for menu options
       String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
       String midLine = "├──────────────────────────────────┼──────────────────────────────────┤";
       String botLine = "└──────────────────────────────────┴──────────────────────────────────┘";
       screen.displayMessageLine(topLine);
-      
+
       // Row 1: Balance (left) and Withdraw (right)
       screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
       screen.displayMessageLine("│" + centerText("1. View Balance", 34) + "│" + centerText("2. Withdraw", 34) + "│");
       screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
       screen.displayMessageLine(midLine);
-      
+
       // Row 2: Transfer (left) and Exit (right)
       screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
       screen.displayMessageLine("│" + centerText("3. Transfer", 34) + "│" + centerText("4. Exit", 34) + "│");
       screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
       screen.displayMessageLine(botLine);
       screen.displayMessageLine("");
-      
+
       int choice;
       if (gui != null) {
          choice = gui.getMenuSelection();
@@ -195,7 +220,7 @@ public class ATM {
       }
       return choice; // return user's selection
    } // end method displayMainMenu
-   
+
    // Helper method to center text in a fixed width
    private String centerText(String text, int width) {
       int padding = (width - text.length()) / 2;
@@ -226,18 +251,3 @@ public class ATM {
       return temp; // return the newly created object
    } // end method createTransaction
 } // end class ATM
-
-/**************************************************************************
- * (C) Copyright 1992-2007 by Deitel & Associates, Inc. and *
- * Pearson Education, Inc. All Rights Reserved. *
- * *
- * DISCLAIMER: The authors and publisher of this book have used their *
- * best efforts in preparing the book. These efforts include the *
- * development, research, and testing of the theories and programs *
- * to determine their effectiveness. The authors and publisher make *
- * no warranty of any kind, expressed or implied, with regard to these *
- * programs or to the documentation contained in these books. The authors *
- * and publisher shall not be liable in any event for incidental or *
- * consequential damages in connection with, or arising out of, the *
- * furnishing, performance, or use of these programs. *
- *************************************************************************/

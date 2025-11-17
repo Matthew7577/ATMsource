@@ -8,6 +8,7 @@ public class Withdrawal extends Transaction {
 
    // constants for menu options
    private final static int CANCELED = -1;
+   private final static int EMPTY = -2;
    private final static int CUSTOM_AMOUNT = 6;
 
    // Withdrawal constructor
@@ -25,7 +26,7 @@ public class Withdrawal extends Transaction {
    // perform transaction
    public void execute() {
       clearScreen(); // clear screen when entering this transaction
-      
+
       boolean cashDispensed = false; // cash was not dispensed yet
       double availableBalance; // amount available for withdrawal
 
@@ -75,30 +76,25 @@ public class Withdrawal extends Transaction {
                   if ((amount % 500) / 100 > 0) {
                      cashBreakdown += String.format("\nHK$100 bills: %d", (amount % 500) / 100);
                   }
-                  
+
                   // Show alert with cash dispensed message and wait for cash to be taken
                   getGUI().showAlert("Cash Dispensed", cashBreakdown, 0);
                   getGUI().waitForCashTaken();
-                  
+
                   // Clear screen after cash is taken
                   clearScreen();
                } // end if
                else // cash dispenser does not have enough cash
                {
-                  screen.displayMessageLine(
-                        "\nInsufficient cash available in the ATM." +
-                              "\n\nPlease choose a smaller amount.");
-                  // Pause for 2 seconds to show the error message
-                  pause(2000);
+                  clearScreen();
+                  getGUI().showAlert("Insufficient cash available in the ATM.", "Please choose a smaller amount.", 2.0);
                }
             } // end if
             else // not enough money available in user's account
             {
-               screen.displayMessageLine(
-                     "\nInsufficient funds in your account." +
-                           "\n\nPlease choose a smaller amount.");
-               // Pause for 2 seconds to show the error message
-               pause(2000);
+               clearScreen();
+               getGUI().showAlert("Insufficient funds in your account.", "Please choose a smaller amount.", 2.0);
+               clearScreen();
             } // end else
          } // end if
          else // user chose cancel menu option
@@ -126,21 +122,21 @@ public class Withdrawal extends Transaction {
          screen.displayMessageLine("\n\n");
          screen.displayMessageLine(centerText("Withdrawal Menu", 72));
          screen.displayMessageLine("\n\n");
-         
+
          // Create 2x3 table for menu options
          String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
          String midLine = "├──────────────────────────────────┼──────────────────────────────────┤";
          String botLine = "└──────────────────────────────────┴──────────────────────────────────┘";
          screen.displayMessageLine(topLine);
-         
+
          // Row 1: $200 (left) and $500 (right)
          screen.displayMessageLine("│" + centerText("1. $200", 34) + "│" + centerText("2. $500", 34) + "│");
          screen.displayMessageLine(midLine);
-         
+
          // Row 2: $1,000 (left) and $2,000 (right)
          screen.displayMessageLine("│" + centerText("3. $1,000", 34) + "│" + centerText("4. $2,000", 34) + "│");
          screen.displayMessageLine(midLine);
-         
+
          // Row 3: $5,000 (left) and Other amount (right)
          screen.displayMessageLine("│" + centerText("5. $5,000", 34) + "│" + centerText("6. Other amount", 34) + "│");
          screen.displayMessageLine(botLine);
@@ -165,10 +161,13 @@ public class Withdrawal extends Transaction {
             case CANCELED: // the user chose to cancel
                userChoice = CANCELED; // save user's choice
                break;
+            case EMPTY: // empty input or invalid input
+               getGUI().showAlert("Invalid Selection", "Please select a valid option (1-6)", 2.0);
+               clearScreen();
+               break;
             default: // the user did not enter a value from 1-6
-               getGUI().clearScreen();
-               getGUI().showAlert("Invalid Selection", "Please select a valid option (1-6).", 2.0);
-               getGUI().clearScreen();
+               getGUI().showAlert("Invalid Selection", "Please select a valid option (1-6)", 2.0);
+               clearScreen();
          } // end switch
       } // end while
 
@@ -190,30 +189,19 @@ public class Withdrawal extends Transaction {
          // check if amount is valid (multiple of 100, 500, or 1000)
          if (input == CANCELED)
             return CANCELED;
-         else if (input % 100 == 0 && input > 0) {
+         else if (input == EMPTY) {
+            // Empty input - show alert
+            getGUI().showAlert("Invalid Amount", "Please enter a valid amount", 2);
+            clearScreen();
+         } else if (input % 100 == 0 && input > 0) {
             // amount is valid if it's a multiple of any of the allowed values
             amount = input;
          } else {
-            screen.displayMessageLine(
-                  "\nInvalid amount. Please enter a multiple of 100, 500, or 1000.");
+            getGUI().showAlert("Invalid Amount", "Please enter a multiple of 100, 500, or 1000", 2);
+            clearScreen();
          }
       }
 
       return amount;
    } // end method displayMenuOfAmounts
 } // end class Withdrawal
-
-/**************************************************************************
- * (C) Copyright 1992-2007 by Deitel & Associates, Inc. and *
- * Pearson Education, Inc. All Rights Reserved. *
- * *
- * DISCLAIMER: The authors and publisher of this book have used their *
- * best efforts in preparing the book. These efforts include the *
- * development, research, and testing of the theories and programs *
- * to determine their effectiveness. The authors and publisher make *
- * no warranty of any kind, expressed or implied, with regard to these *
- * programs or to the documentation contained in these books. The authors *
- * and publisher shall not be liable in any event for incidental or *
- * consequential damages in connection with, or arising out of, the *
- * furnishing, performance, or use of these programs. *
- *************************************************************************/
