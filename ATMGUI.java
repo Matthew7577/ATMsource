@@ -549,6 +549,31 @@ public class ATMGUI extends JFrame {
         }
     }
 
+    public synchronized boolean waitForEnterOrCancel() {
+        // Set up a waiting mode that responds to ENTER or CANCEL button
+        isNumericInput = false;
+        isPasswordMode = false;
+        inputBuffer.setLength(0);
+        lastInput = "";
+        waitingForInput = true;
+
+        // Capture input start position after any pending display updates
+        SwingUtilities.invokeLater(() -> {
+            inputStartPosition = displayArea.getText().length();
+        });
+
+        try {
+            while (waitingForInput) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Return true if ENTER was pressed, false if CANCEL was pressed
+        return !lastInput.equals("CANCEL");
+    }
+
     public synchronized String getInput(boolean numeric, boolean passwordMode) {
         return getInput(numeric, passwordMode, false);
     }

@@ -41,6 +41,14 @@ public class Withdrawal extends Transaction {
 
          // check whether user chose a withdrawal amount or canceled
          if (amount != CANCELED) {
+            // Show confirmation screen
+            if (!showWithdrawalConfirmation(amount)) {
+               // User canceled the confirmation
+               clearScreen();
+               getGUI().showAlert("Transaction Canceled", "Operation has been canceled.", 2.0);
+               return; // return to main menu
+            }
+
             // get available balance of account involved
             availableBalance = bankDatabase.getAvailableBalance(getAccountNumber());
 
@@ -99,7 +107,8 @@ public class Withdrawal extends Transaction {
          } // end if
          else // user chose cancel menu option
          {
-            screen.displayMessageLine("\nCanceling transaction...");
+            clearScreen();
+            getGUI().showAlert("Transaction Canceled", "Withdrawal has been canceled.", 2.0);
             return; // return to main menu because user canceled
          } // end else
       } while (!cashDispensed);
@@ -204,4 +213,23 @@ public class Withdrawal extends Transaction {
 
       return amount;
    } // end method displayMenuOfAmounts
+
+   // show confirmation screen for withdrawal and wait for user confirmation
+   // returns true if user confirms, false if user cancels
+   private boolean showWithdrawalConfirmation(int amount) {
+      Screen screen = getScreen();
+      clearScreen();
+
+      // Display withdrawal confirmation centered on screen
+      screen.displayMessageLine("\n\n");
+      screen.displayMessageLine(centerText("Confirm Withdrawal", 72));
+      screen.displayMessageLine("");
+      screen.displayMessageLine(centerText(String.format("Amount to withdraw: HK$%.2f", (double)amount), 72));
+      screen.displayMessageLine("");
+      screen.displayMessageLine("");
+      screen.displayMessageLine(centerText("Press ENTER to confirm or CANCEL to abort", 72));
+
+      // Wait for user to press ENTER or CANCEL
+      return getGUI().waitForEnterOrCancel();
+   } // end method showWithdrawalConfirmation
 } // end class Withdrawal
