@@ -68,13 +68,13 @@ public class Withdrawal extends Transaction {
                   // Build cash breakdown message with line breaks
                   String cashBreakdown = "Please take your cash now";
                   if (amount / 1000 > 0) {
-                     cashBreakdown += String.format("\n\nHK$1000 bills: %d", amount / 1000);
+                     cashBreakdown += String.format("\n\nHK$1000 notes: %d", amount / 1000);
                   }
                   if ((amount % 1000) / 500 > 0) {
-                     cashBreakdown += String.format("\nHK$500 bills: %d", (amount % 1000) / 500);
+                     cashBreakdown += String.format("\nHK$500  notes: %d", (amount % 1000) / 500);
                   }
                   if ((amount % 500) / 100 > 0) {
-                     cashBreakdown += String.format("\nHK$100 bills: %d", (amount % 500) / 100);
+                     cashBreakdown += String.format("\nHK$100  notes: %d", (amount % 500) / 100);
                   }
 
                   // Show alert with cash dispensed message and wait for cash to be taken
