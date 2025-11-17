@@ -75,38 +75,39 @@ public class Transfer extends Transaction {
       getBankDatabase().credit(targetAccount, amount);
 
       // display success message
-      getScreen().displayMessageLine("\nTransfer successful!");
-      getScreen().displayMessageLine(
-            String.format("Amount transferred: HK$%.2f", amount));
-      
-      // Pause for 2 seconds to show the success message
-      pause(2000);
+      clearScreen();
+      getGUI().showAlert("Transfer successful!", "Amount transferred: HK$" + amount + "\nTarget account: " + targetAccount, 2);
    }
 
    // prompt user to enter a transfer amount
    private double promptForTransferAmount() {
       Screen screen = getScreen(); // get reference to screen
 
-      // display the prompt
-      screen.displayMessage("\nPlease enter transfer amount " +
-            "(e.g., 1.50 for HK$1.50, or press CANCEL): HK$");
-      double input = keypad.getInputDouble(); // receive decimal input
+      // display the prompt centered on screen
+      screen.displayMessageLine("\n\n\n\n\n\n");
+      screen.displayMessageLine(centerText("Please enter transfer amount", 72));
+      screen.displayMessageLine(centerText("(or press CANCEL)", 72));
+      screen.displayMessageLine("\n\n\n\n");
+      int input = keypad.getInputRightAlign("HK$"); // receive input with right alignment and HK$ prefix
 
       // check whether the user canceled or entered a valid amount
       if (input == CANCELED)
          return CANCELED;
       else
-         return input; // return dollar amount directly
+         return (double) input; // return dollar amount as double
    }
 
    // prompt user to enter a target account number
    private int promptForTargetAccount() {
       Screen screen = getScreen(); // get reference to screen
 
-      // display the prompt
-      screen.displayMessage("\nPlease enter target account number " +
-            "(or press CANCEL): ");
-      int input = keypad.getInput(); // receive input of account number
+      // display the prompt centered on screen
+      clearScreen();
+      screen.displayMessageLine("\n\n\n\n\n\n");
+      screen.displayMessageLine(centerText("Please enter target account number", 72));
+      screen.displayMessageLine(centerText("(or press CANCEL)", 72));
+      screen.displayMessageLine("\n\n\n\n");
+      int input = keypad.getInputRightAlign("Account: "); // receive input with right alignment (no prefix)
 
       return input; // return account number
    }

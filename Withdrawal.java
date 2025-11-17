@@ -166,8 +166,9 @@ public class Withdrawal extends Transaction {
                userChoice = CANCELED; // save user's choice
                break;
             default: // the user did not enter a value from 1-6
-               screen.displayMessageLine(
-                     "\nInvalid selection. Try again.");
+               getGUI().clearScreen();
+               getGUI().showAlert("Invalid Selection", "Please select a valid option (1-6).", 2.0);
+               getGUI().clearScreen();
          } // end switch
       } // end while
 
@@ -184,7 +185,7 @@ public class Withdrawal extends Transaction {
          screen.displayMessageLine(centerText("Please enter a withdrawal amount", 72));
          screen.displayMessageLine(centerText("(multiples of 100, 500, or 1000 only)", 72));
          screen.displayMessageLine("\n\n\n\n");
-         int input = keypad.getInputRightAlign();
+         int input = keypad.getInputRightAlign("HK$");
 
          // check if amount is valid (multiple of 100, 500, or 1000)
          if (input == CANCELED)

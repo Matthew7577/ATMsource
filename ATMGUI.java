@@ -176,7 +176,7 @@ public class ATMGUI extends JFrame {
         cardButton.addActionListener(e -> handleCardButton());
         
         // Cash dispenser button
-        cashButton = new JButton("<html><center>CASH<br>SLOT</center></html>");
+        cashButton = new JButton("<html><center>TAKE<br>CASH</center></html>");
         cashButton.setBackground(new Color(180, 120, 50));
         cashButton.setForeground(Color.WHITE);
         cashButton.setFocusPainted(false);
@@ -754,7 +754,7 @@ public class ATMGUI extends JFrame {
         displayMessageLine("\n\n\n\n");
         displayMessageLine(centerText("Welcome to use the ATM", screenWidth));
         displayMessageLine("");
-        displayMessageLine(centerText("Please insert your card in slot", screenWidth));
+        displayMessageLine(centerText("Please insert your card", screenWidth));
     }
     
     // Wait for card insertion

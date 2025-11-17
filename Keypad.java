@@ -34,9 +34,9 @@ public class Keypad {
    } // end method getInputPassword
    
    // return an integer value entered by user with right alignment
-   public int getInputRightAlign() {
+   public int getInputRightAlign(String prefix) {
       if (gui != null) {
-         return gui.getNumericInput(false, true, "HK$");
+         return gui.getNumericInput(false, true, prefix);
       } else {
          return input.nextInt(); // we assume that user enters an integer
       }
