@@ -40,6 +40,13 @@ public class ATMGUI extends JFrame {
     private static final Color CLEAR_BUTTON_COLOR = new Color(200, 150, 50);
     
     public ATMGUI() {
+        // Force cross-platform Look and Feel for consistent appearance
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception e) {
+            // If setting L&F fails, continue with default
+        }
+        
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1065, 750);
@@ -116,6 +123,8 @@ public class ATMGUI extends JFrame {
         String[] leftPositions = {"L1", "L2", "L3", "L4"};
         for (int i = 0; i < 4; i++) {
             JButton btn = new JButton("<");
+            btn.setOpaque(true);
+            btn.setBorderPainted(false);
             btn.setBackground(BUTTON_COLOR);
             btn.setForeground(Color.WHITE);
             btn.setFocusPainted(false);
@@ -140,6 +149,8 @@ public class ATMGUI extends JFrame {
         String[] rightPositions = {"R1", "R2", "R3", "R4"};
         for (int i = 0; i < 4; i++) {
             JButton btn = new JButton(">");
+            btn.setOpaque(true);
+            btn.setBorderPainted(false);
             btn.setBackground(BUTTON_COLOR);
             btn.setForeground(Color.WHITE);
             btn.setFocusPainted(false);
@@ -168,6 +179,8 @@ public class ATMGUI extends JFrame {
         
         // Card slot button
         cardButton = new JButton("<html><center>CARD<br>SLOT</center></html>");
+        cardButton.setOpaque(true);
+        cardButton.setBorderPainted(false);
         cardButton.setBackground(new Color(180, 50, 50)); // Red when no card
         cardButton.setForeground(Color.WHITE);
         cardButton.setFocusPainted(false);
@@ -177,6 +190,8 @@ public class ATMGUI extends JFrame {
         
         // Cash dispenser button
         cashButton = new JButton("<html><center>TAKE<br>CASH</center></html>");
+        cashButton.setOpaque(true);
+        cashButton.setBorderPainted(false);
         cashButton.setBackground(new Color(180, 120, 50));
         cashButton.setForeground(Color.WHITE);
         cashButton.setFocusPainted(false);
@@ -208,6 +223,8 @@ public class ATMGUI extends JFrame {
             gridPanel.add(numberButtons[i]);
         }
         clearButton = new JButton("CLEAR");
+        clearButton.setOpaque(true);
+        clearButton.setBorderPainted(false);
         clearButton.setFont(new Font("Arial", Font.BOLD, 14));
         clearButton.setBackground(CLEAR_BUTTON_COLOR);
         clearButton.setForeground(Color.WHITE);
@@ -222,6 +239,8 @@ public class ATMGUI extends JFrame {
             gridPanel.add(numberButtons[i]);
         }
         cancelButton = new JButton("CANCEL");
+        cancelButton.setOpaque(true);
+        cancelButton.setBorderPainted(false);
         cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
         cancelButton.setBackground(CANCEL_BUTTON_COLOR);
         cancelButton.setForeground(Color.WHITE);
@@ -236,6 +255,8 @@ public class ATMGUI extends JFrame {
             gridPanel.add(numberButtons[i]);
         }
         enterButton = new JButton("ENTER");
+        enterButton.setOpaque(true);
+        enterButton.setBorderPainted(false);
         enterButton.setFont(new Font("Arial", Font.BOLD, 14));
         enterButton.setBackground(ENTER_BUTTON_COLOR);
         enterButton.setForeground(Color.WHITE);
@@ -260,6 +281,8 @@ public class ATMGUI extends JFrame {
     
     private JButton createKeypadButton(String label) {
         JButton button = new JButton(label);
+        button.setOpaque(true);
+        button.setBorderPainted(false);
         button.setFont(new Font("Arial", Font.BOLD, 20));
         button.setPreferredSize(new Dimension(80, 60));
         button.setBackground(BUTTON_COLOR);
