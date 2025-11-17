@@ -9,7 +9,7 @@ public class BalanceInquiry extends Transaction {
    } // end BalanceInquiry constructor
 
    // performs the transaction
-   public void execute() {
+   public boolean execute() {
       clearScreen(); // clear screen when entering this transaction
 
       // get references to bank database and screen
@@ -42,5 +42,8 @@ public class BalanceInquiry extends Transaction {
 
       // Wait for user to press ENTER
       getGUI().waitForEnter();
+      
+      setCompletedSuccessfully(true); // Mark transaction as completed
+      return false; // Don't exit, return to main menu
    } // end method execute
 } // end class BalanceInquiry

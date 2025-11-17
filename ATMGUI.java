@@ -799,6 +799,74 @@ public class ATMGUI extends JFrame {
         }
     }
 
+    // Get menu selection for post-transaction menu with side buttons
+    public synchronized int getPostTransactionMenuSelection() {
+        // For post-transaction menu selections, allow both side buttons and keypad
+        isNumericInput = true; // Allow keypad input for menu
+        isPasswordMode = false;
+        instantMenuMode = true; // Enable instant submission for menu
+        menuSelectionMode = true; // Enable side buttons for menu
+        inputBuffer.setLength(0);
+        lastInput = "";
+        waitingForInput = true;
+
+        // Enable buttons used in post-transaction menu (L4, R4)
+        setActiveSideButtons("L4", "R4");
+
+        // Capture input start position after any pending display updates
+        SwingUtilities.invokeLater(() -> {
+            inputStartPosition = displayArea.getText().length();
+        });
+
+        try {
+            while (waitingForInput) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return -1;
+        }
+
+        instantMenuMode = false; // Disable instant mode after selection
+        menuSelectionMode = false; // Disable side buttons after selection
+        clearActiveSideButtons(); // Clear active buttons after menu selection
+
+        if ("CANCEL".equals(lastInput)) {
+            return -1;
+        }
+
+        if (lastInput.isEmpty()) {
+            return EMPTY; // Empty input
+        }
+
+        // Map button positions to post-transaction menu options
+        // Post-transaction menu: L4=1, R4=2
+        int selection = mapButtonPositionToPostTransactionMenuOption(lastInput);
+        if (selection != -1) {
+            return selection;
+        }
+
+        // If not a button position, try to parse as direct number input
+        try {
+            return Integer.parseInt(lastInput);
+        } catch (NumberFormatException e) {
+            return EMPTY; // Invalid input
+        }
+    }
+
+    // Map button position to post-transaction menu options
+    private int mapButtonPositionToPostTransactionMenuOption(String position) {
+        // Post-transaction menu layout: L4=1 (Continue), R4=2 (Eject)
+        switch (position) {
+            case "L4":
+                return 1; // Continue Operations
+            case "R4":
+                return 2; // Eject Card
+            default:
+                return -1; // Button not mapped to any option
+        }
+    }
+
     // Handle card button click
     private synchronized void handleCardButton() {
         if (!cardInserted) {

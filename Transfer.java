@@ -5,8 +5,6 @@ public class Transfer extends Transaction {
    private double amount; // amount to transfer
    private Keypad keypad; // reference to keypad
    private int targetAccount; // account to transfer to
-   private final static int CANCELED = -1; // constant for cancel option
-   private final static int EMPTY = -2; // constant for empty input
 
    // Transfer constructor
    public Transfer(int userAccountNumber, Screen atmScreen,
@@ -19,7 +17,7 @@ public class Transfer extends Transaction {
    }
 
    // perform the transfer transaction
-   public void execute() {
+   public boolean execute() {
       clearScreen(); // clear screen when entering this transaction
 
       double availableBalance; // amount available for transfer
@@ -30,14 +28,15 @@ public class Transfer extends Transaction {
       // get transfer amount from user and check for cancellation
       amount = promptForTransferAmount();
 
-      if (amount == CANCELED) // user chose to cancel
-         return; // return to main menu
+      if (amount == CANCELED) { // user chose to cancel
+         return showCancelMenu();
+      }
 
       // check whether the user has enough money first
       if (amount > availableBalance) {
          clearScreen();
          getGUI().showAlert("Insufficient funds in your account", "Please choose a smaller amount.", 2.0);
-         return; // return to main menu
+         return false; // return to main menu
       }
 
       // check if this is a cheque account and amount exceeds limit
@@ -47,35 +46,34 @@ public class Transfer extends Transaction {
             clearScreen();
             getGUI().showAlert("Transfer amount exceeds the limit of HK$" + limit + " for cheque accounts",
                   "Please choose a smaller amount.", 2.0);
-            return; // return to main menu
+            return false; // return to main menu
          }
       }
 
       // get target account from user
       targetAccount = promptForTargetAccount();
 
-      if (targetAccount == CANCELED) // user chose to cancel
-         return; // return to main menu
+      if (targetAccount == CANCELED) { // user chose to cancel
+         return showCancelMenu();
+      }
 
       // check whether target account exists
       if (!getBankDatabase().accountExists(targetAccount)) {
          clearScreen();
          getGUI().showAlert("Invalid target account", "Transfer canceled", 2.0);
-         return; // return to main menu
+         return false; // return to main menu
       }
       // check whether target account is different from source account
       if (targetAccount == getAccountNumber()) {
          clearScreen();
          getGUI().showAlert("Target account cannot be source account", "Transfer canceled", 2.0);
-         return; // return to main menu
+         return false; // return to main menu
       }
 
       // Show confirmation screen
       if (!showTransferConfirmation(targetAccount, amount)) {
-         // User canceled the confirmation
-         clearScreen();
-         getGUI().showAlert("Transaction Canceled", "Operation has been canceled.", 2.0);
-         return; // return to main menu
+         // User canceled the confirmation - show cancel menu
+         return showCancelMenu();
       }
 
       // at this point, we have a valid amount, sufficient funds, and valid target
@@ -88,6 +86,9 @@ public class Transfer extends Transaction {
       clearScreen();
       getGUI().showAlert("Transfer successful!",
             "Amount transferred: HK$" + amount + "\nTarget account: " + targetAccount, 2);
+      
+      setCompletedSuccessfully(true); // Mark transaction as completed
+      return false; // Transaction completed successfully, don't exit
    }
 
    // prompt user to enter a transfer amount
@@ -149,20 +150,8 @@ public class Transfer extends Transaction {
    // show confirmation screen for transfer and wait for user confirmation
    // returns true if user confirms, false if user cancels
    private boolean showTransferConfirmation(int targetAccount, double amount) {
-      Screen screen = getScreen();
-      clearScreen();
-
-      // Display transfer confirmation centered on screen
-      screen.displayMessageLine("\n\n");
-      screen.displayMessageLine(centerText("Confirm Transfer", 72));
-      screen.displayMessageLine("");
-      screen.displayMessageLine(centerText("Target Account: " + targetAccount, 72));
-      screen.displayMessageLine(centerText(String.format("Transfer Amount: HK$%.2f", amount), 72));
-      screen.displayMessageLine("");
-      screen.displayMessageLine("");
-      screen.displayMessageLine(centerText("Press ENTER to confirm or CANCEL to abort", 72));
-
-      // Wait for user to press ENTER or CANCEL
-      return getGUI().waitForEnterOrCancel();
+      return showConfirmation("Confirm Transfer",
+            "Target Account: " + targetAccount,
+            String.format("Transfer Amount: HK$%.2f", amount));
    } // end method showTransferConfirmation
 }

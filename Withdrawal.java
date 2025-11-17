@@ -7,8 +7,6 @@ public class Withdrawal extends Transaction {
    private CashDispenser cashDispenser; // reference to cash dispenser
 
    // constants for menu options
-   private final static int CANCELED = -1;
-   private final static int EMPTY = -2;
    private final static int CUSTOM_AMOUNT = 6;
 
    // Withdrawal constructor
@@ -24,7 +22,7 @@ public class Withdrawal extends Transaction {
    } // end Withdrawal constructor
 
    // perform transaction
-   public void execute() {
+   public boolean execute() {
       clearScreen(); // clear screen when entering this transaction
 
       boolean cashDispensed = false; // cash was not dispensed yet
@@ -32,7 +30,6 @@ public class Withdrawal extends Transaction {
 
       // get references to bank database and screen
       BankDatabase bankDatabase = getBankDatabase();
-      Screen screen = getScreen();
 
       // loop until cash is dispensed or the user cancels
       do {
@@ -43,10 +40,8 @@ public class Withdrawal extends Transaction {
          if (amount != CANCELED) {
             // Show confirmation screen
             if (!showWithdrawalConfirmation(amount)) {
-               // User canceled the confirmation
-               clearScreen();
-               getGUI().showAlert("Transaction Canceled", "Operation has been canceled.", 2.0);
-               return; // return to main menu
+               // User canceled the confirmation - show cancel menu
+               return showCancelMenu();
             }
 
             // get available balance of account involved
@@ -58,9 +53,9 @@ public class Withdrawal extends Transaction {
                if (bankDatabase.isChequeAccount(getAccountNumber())) {
                   double limit = bankDatabase.getLimitPerCheque(getAccountNumber());
                   if (amount > limit) {
-                     screen.displayMessageLine(
-                           String.format("\nWithdrawal amount exceeds the limit of HK$%.2f for cheque accounts." +
-                                 "\n\nPlease choose a smaller amount.", limit));
+                     clearScreen();
+                     getGUI().showAlert("Withdrawal amount exceeds the limit of HK$" + limit + " for cheque accounts.", "Please choose a smaller amount.", 2.0);
+                     clearScreen();
                      continue; // continue the loop to allow another attempt
                   }
                }
@@ -96,6 +91,7 @@ public class Withdrawal extends Transaction {
                {
                   clearScreen();
                   getGUI().showAlert("Insufficient cash available in the ATM", "Please choose a smaller amount.", 2.0);
+                  clearScreen();
                }
             } // end if
             else // not enough money available in user's account
@@ -107,12 +103,12 @@ public class Withdrawal extends Transaction {
          } // end if
          else // user chose cancel menu option
          {
-            clearScreen();
-            getGUI().showAlert("Transaction Canceled", "Withdrawal has been canceled.", 2.0);
-            return; // return to main menu because user canceled
+            return showCancelMenu();
          } // end else
       } while (!cashDispensed);
 
+      setCompletedSuccessfully(true); // Mark transaction as completed
+      return false; // Transaction completed successfully, don't exit
    } // end method execute
 
    // display a menu of withdrawal amounts and the option to cancel;
@@ -217,19 +213,7 @@ public class Withdrawal extends Transaction {
    // show confirmation screen for withdrawal and wait for user confirmation
    // returns true if user confirms, false if user cancels
    private boolean showWithdrawalConfirmation(int amount) {
-      Screen screen = getScreen();
-      clearScreen();
-
-      // Display withdrawal confirmation centered on screen
-      screen.displayMessageLine("\n\n");
-      screen.displayMessageLine(centerText("Confirm Withdrawal", 72));
-      screen.displayMessageLine("");
-      screen.displayMessageLine(centerText(String.format("Amount to withdraw: HK$%.2f", (double)amount), 72));
-      screen.displayMessageLine("");
-      screen.displayMessageLine("");
-      screen.displayMessageLine(centerText("Press ENTER to confirm or CANCEL to abort", 72));
-
-      // Wait for user to press ENTER or CANCEL
-      return getGUI().waitForEnterOrCancel();
+      return showConfirmation("Confirm Withdrawal",
+            String.format("Amount to withdraw: HK$%.2f", (double)amount));
    } // end method showWithdrawalConfirmation
 } // end class Withdrawal

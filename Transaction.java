@@ -6,6 +6,11 @@ public abstract class Transaction {
    private Screen screen; // ATM's screen
    private BankDatabase bankDatabase; // account info database
    private ATMGUI gui; // reference to GUI for screen clearing
+   private boolean completedSuccessfully; // tracks if transaction completed successfully
+
+   // constants for transaction operations
+   protected final static int CANCELED = -1;
+   protected final static int EMPTY = -2;
 
    // Transaction constructor invoked by subclasses using super()
    public Transaction(int userAccountNumber, Screen atmScreen,
@@ -14,6 +19,7 @@ public abstract class Transaction {
       screen = atmScreen;
       bankDatabase = atmBankDatabase;
       gui = null;
+      completedSuccessfully = false;
    } // end Transaction constructor
 
    // Transaction constructor with GUI reference
@@ -23,6 +29,7 @@ public abstract class Transaction {
       screen = atmScreen;
       bankDatabase = atmBankDatabase;
       gui = atmGUI;
+      completedSuccessfully = false;
    } // end Transaction constructor
 
    // return account number
@@ -44,6 +51,16 @@ public abstract class Transaction {
    public ATMGUI getGUI() {
       return gui;
    } // end method getGUI
+
+   // return whether transaction completed successfully
+   public boolean isCompletedSuccessfully() {
+      return completedSuccessfully;
+   } // end method isCompletedSuccessfully
+
+   // set whether transaction completed successfully
+   protected void setCompletedSuccessfully(boolean completed) {
+      completedSuccessfully = completed;
+   } // end method setCompletedSuccessfully
 
    // clear screen if GUI is available
    protected void clearScreen() {
@@ -68,6 +85,63 @@ public abstract class Transaction {
       return String.format("%" + padding + "s%s%" + paddingRight + "s", "", text, "");
    } // end method centerText
 
+   // Display post-transaction menu with custom title and return true if user wants to exit
+   private boolean showTransactionMenu(String title) {
+      clearScreen();
+      screen.displayMessageLine("\n\n\n");
+      screen.displayMessageLine(centerText(title, 72));
+      screen.displayMessageLine(centerText("Would you like to continue or eject your card?", 72));
+      screen.displayMessageLine("\n\n\n\n");
+
+      // Create 2x1 table for menu options
+      String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
+      String botLine = "└──────────────────────────────────┴──────────────────────────────────┘";
+      screen.displayMessageLine(topLine);
+
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine("│" + centerText("1. Return to Menu", 34) + "│" + centerText("2. Eject Card", 34) + "│");
+      screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
+      screen.displayMessageLine(botLine);
+      screen.displayMessageLine("");
+
+      int choice = gui.getPostTransactionMenuSelection();
+      return choice == 2; // Return true if user chose to eject card
+   } // end method showTransactionMenu
+
+   // Display post-transaction menu and return true if user wants to exit
+   protected boolean showPostTransactionMenu() {
+      return showTransactionMenu("Transaction complete.");
+   } // end method showPostTransactionMenu
+
+   // Display cancel menu and return true if user wants to exit
+   protected boolean showCancelMenu() {
+      return showTransactionMenu("Transaction Canceled.");
+   } // end method showCancelMenu
+
+   // Show confirmation screen and wait for user confirmation
+   // returns true if user confirms, false if user cancels
+   protected boolean showConfirmation(String title, String... details) {
+      clearScreen();
+
+      // Display confirmation centered on screen
+      screen.displayMessageLine("\n\n");
+      screen.displayMessageLine(centerText(title, 72));
+      screen.displayMessageLine("");
+      
+      // Display all detail lines
+      for (String detail : details) {
+         screen.displayMessageLine(centerText(detail, 72));
+      }
+      
+      screen.displayMessageLine("");
+      screen.displayMessageLine("");
+      screen.displayMessageLine(centerText("Press ENTER to confirm or CANCEL to abort", 72));
+
+      // Wait for user to press ENTER or CANCEL
+      return gui.waitForEnterOrCancel();
+   } // end method showConfirmation
+
    // perform the transaction (overridden by each subclass)
-   abstract public void execute();
+   // returns true if user wants to exit, false to continue
+   abstract public boolean execute();
 } // end class Transaction

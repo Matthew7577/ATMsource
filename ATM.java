@@ -149,28 +149,57 @@ public class ATM {
          switch (mainMenuSelection) {
             // user chose to perform one of three transaction types
             case BALANCE_INQUIRY:
+               // initialize as new object of chosen type
+               currentTransaction = createTransaction(mainMenuSelection);
+
+               boolean exitRequested = currentTransaction.execute(); // execute transaction
+
+               if (exitRequested) {
+                  // User chose to eject card from cancel menu
+                  ejectCard();
+                  userExited = true; // End session
+               } else {
+                  // Balance inquiry returns directly to main menu (no post-transaction menu)
+                  if (gui != null) {
+                     gui.clearScreen();
+                  }
+               }
+               break;
+
             case WITHDRAWAL:
             case TRANSFER:
 
                // initialize as new object of chosen type
                currentTransaction = createTransaction(mainMenuSelection);
 
-               currentTransaction.execute(); // execute transaction
+               exitRequested = currentTransaction.execute(); // execute transaction
 
-               // Clear screen after transaction completes for clean menu display
-               if (gui != null) {
-                  gui.clearScreen();
+               if (exitRequested) {
+                  // User chose to eject card from cancel menu
+                  ejectCard();
+                  userExited = true; // End session
+               } else if (currentTransaction.isCompletedSuccessfully()) {
+                  // Only show post-transaction menu if transaction completed successfully
+                  if (currentTransaction.showPostTransactionMenu()) {
+                     // User chose to eject card
+                     ejectCard();
+                     userExited = true; // End session
+                  } else {
+                     // Clear screen after transaction completes for clean menu display
+                     if (gui != null) {
+                        gui.clearScreen();
+                     }
+                  }
+               } else {
+                  // Transaction was not completed (e.g., insufficient funds, validation error)
+                  // Just clear screen and return to main menu
+                  if (gui != null) {
+                     gui.clearScreen();
+                  }
                }
                break;
             case EXIT: // user chose to terminate session
-               if (gui != null) {
-                  gui.clearScreen();
-                  gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM", 0);
-                  gui.waitForCardRemoval(); // Wait for user to take card
-                  gui.clearScreen();
-               } else {
-                  screen.displayMessageLine("\nExiting the system...");
-               }
+               ejectCard();
                userExited = true; // this ATM session should end
                break;
             default: // user did not enter an integer from 1-4
@@ -250,4 +279,16 @@ public class ATM {
 
       return temp; // return the newly created object
    } // end method createTransaction
+
+   // Handle card ejection process
+   private void ejectCard() {
+      if (gui != null) {
+         gui.clearScreen();
+         gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM", 0);
+         gui.waitForCardRemoval(); // Wait for user to take card
+         gui.clearScreen();
+      } else {
+         screen.displayMessageLine("\nExiting the system...");
+      }
+   } // end method ejectCard
 } // end class ATM
