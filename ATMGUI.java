@@ -51,7 +51,7 @@ public class ATMGUI extends JFrame {
 
         setTitle("ATM Machine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1065, 750);
+        setSize(1080, 750);
         setLocationRelativeTo(null);
         setResizable(false);
 
