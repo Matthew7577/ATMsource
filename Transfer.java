@@ -36,7 +36,7 @@ public class Transfer extends Transaction {
       // check whether the user has enough money first
       if (amount > availableBalance) {
          clearScreen();
-         getGUI().showAlert("Insufficient funds in your account.", "Please choose a smaller amount.", 2.0);
+         getGUI().showAlert("Insufficient funds in your account", "Please choose a smaller amount.", 2.0);
          return; // return to main menu
       }
 
@@ -45,7 +45,7 @@ public class Transfer extends Transaction {
          double limit = getBankDatabase().getLimitPerCheque(getAccountNumber());
          if (amount > limit) {
             clearScreen();
-            getGUI().showAlert("Transfer amount exceeds the limit of HK$" + limit + " for cheque accounts.",
+            getGUI().showAlert("Transfer amount exceeds the limit of HK$" + limit + " for cheque accounts",
                   "Please choose a smaller amount.", 2.0);
             return; // return to main menu
          }
@@ -57,11 +57,16 @@ public class Transfer extends Transaction {
       if (targetAccount == CANCELED) // user chose to cancel
          return; // return to main menu
 
-      // check whether target account exists and is different from source account
-      if (!getBankDatabase().accountExists(targetAccount) ||
-            targetAccount == getAccountNumber()) {
+      // check whether target account exists
+      if (!getBankDatabase().accountExists(targetAccount)) {
          clearScreen();
          getGUI().showAlert("Invalid target account", "Transfer canceled", 2.0);
+         return; // return to main menu
+      }
+      // check whether target account is different from source account
+      if (targetAccount == getAccountNumber()) {
+         clearScreen();
+         getGUI().showAlert("Target account cannot be source account", "Transfer canceled", 2.0);
          return; // return to main menu
       }
 

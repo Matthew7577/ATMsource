@@ -87,7 +87,7 @@ public class Withdrawal extends Transaction {
                else // cash dispenser does not have enough cash
                {
                   clearScreen();
-                  getGUI().showAlert("Insufficient cash available in the ATM.", "Please choose a smaller amount.", 2.0);
+                  getGUI().showAlert("Insufficient cash available in the ATM", "Please choose a smaller amount.", 2.0);
                }
             } // end if
             else // not enough money available in user's account
