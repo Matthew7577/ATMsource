@@ -64,24 +64,13 @@ public class ATM {
 
       // Check if user canceled
       if (accountNumber == -1) {
-         if (gui != null) {
-            gui.clearScreen();
-            gui.showAlert("Session Cancelled", "Please take your card\nThank you for using our ATM", 0);
-            gui.waitForCardRemoval(); // Wait for user to take card
-            gui.clearScreen();
-         }
+         handleAuthenticationCancel();
          return true; // Return true to indicate cancellation
       }
 
       // Check if empty input (treat as invalid login)
       if (accountNumber == EMPTY) {
-         if (gui != null) {
-            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
-            gui.clearScreen(); // clear screen after alert
-         } else {
-            screen.displayMessageLine(
-                  "Invalid account number or PIN. Please try again.");
-         }
+         showLoginFailedAlert();
          return false; // Return false to allow retry
       }
 
@@ -90,24 +79,13 @@ public class ATM {
 
       // Check if user canceled
       if (pin == -1) {
-         if (gui != null) {
-            gui.clearScreen();
-            gui.showAlert("Session Cancelled", "Please take your card\nThank you for using our ATM", 0);
-            gui.waitForCardRemoval(); // Wait for user to take card
-            gui.clearScreen();
-         }
+         handleAuthenticationCancel();
          return true; // Return true to indicate cancellation
       }
 
       // Check if empty input (treat as invalid login)
       if (pin == EMPTY) {
-         if (gui != null) {
-            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
-            gui.clearScreen(); // clear screen after alert
-         } else {
-            screen.displayMessageLine(
-                  "Invalid account number or PIN. Please try again.");
-         }
+         showLoginFailedAlert();
          return false; // Return false to allow retry
       }
 
@@ -117,18 +95,9 @@ public class ATM {
       // check whether authentication succeeded
       if (userAuthenticated) {
          currentAccountNumber = accountNumber; // save user's account #
-         if (gui != null) {
-            gui.clearScreen(); // clear screen after successful login
-         }
-      } // end if
-      else {
-         if (gui != null) {
-            gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
-            gui.clearScreen(); // clear screen after alert
-         } else {
-            screen.displayMessageLine(
-                  "Invalid account number or PIN. Please try again.");
-         }
+         gui.clearScreen(); // clear screen after successful login
+      } else {
+         showLoginFailedAlert();
       }
       return false; // Return false to indicate no cancellation
    } // end method authenticateUser
@@ -160,9 +129,7 @@ public class ATM {
                   userExited = true; // End session
                } else {
                   // Balance inquiry returns directly to main menu (no post-transaction menu)
-                  if (gui != null) {
-                     gui.clearScreen();
-                  }
+                  gui.clearScreen();
                }
                break;
 
@@ -186,16 +153,12 @@ public class ATM {
                      userExited = true; // End session
                   } else {
                      // Clear screen after transaction completes for clean menu display
-                     if (gui != null) {
-                        gui.clearScreen();
-                     }
+                     gui.clearScreen();
                   }
                } else {
                   // Transaction was not completed (e.g., insufficient funds, validation error)
                   // Just clear screen and return to main menu
-                  if (gui != null) {
-                     gui.clearScreen();
-                  }
+                  gui.clearScreen();
                }
                break;
             case EXIT: // user chose to terminate session
@@ -203,13 +166,8 @@ public class ATM {
                userExited = true; // this ATM session should end
                break;
             default: // user did not enter an integer from 1-4
-               if (gui != null) {
-                  gui.showAlert("Invalid Selection", "Please select a valid option (1-4).", 2.0);
-                  gui.clearScreen();
-               } else {
-                  screen.displayMessageLine(
-                        "\nYou did not enter a valid selection. Try again.");
-               }
+               gui.showAlert("Invalid Selection", "Please select a valid option (1-4).", 2.0);
+               gui.clearScreen();
                break;
          } // end switch
       } // end while
@@ -241,13 +199,7 @@ public class ATM {
       screen.displayMessageLine(botLine);
       screen.displayMessageLine("");
 
-      int choice;
-      if (gui != null) {
-         choice = gui.getMenuSelection();
-      } else {
-         choice = keypad.getInput();
-      }
-      return choice; // return user's selection
+      return gui.getMenuSelection(); // return user's selection
    } // end method displayMainMenu
 
    // Helper method to center text in a fixed width
@@ -282,13 +234,23 @@ public class ATM {
 
    // Handle card ejection process
    private void ejectCard() {
-      if (gui != null) {
-         gui.clearScreen();
-         gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM", 0);
-         gui.waitForCardRemoval(); // Wait for user to take card
-         gui.clearScreen();
-      } else {
-         screen.displayMessageLine("\nExiting the system...");
-      }
+      gui.clearScreen();
+      gui.showAlert("Session Ended", "Please take your card\nThank you for using our ATM", 0);
+      gui.waitForCardRemoval(); // Wait for user to take card
+      gui.clearScreen();
    } // end method ejectCard
+
+   // Handle authentication cancellation
+   private void handleAuthenticationCancel() {
+      gui.clearScreen();
+      gui.showAlert("Session Cancelled", "Please take your card\nThank you for using our ATM", 0);
+      gui.waitForCardRemoval(); // Wait for user to take card
+      gui.clearScreen();
+   } // end method handleAuthenticationCancel
+
+   // Show login failed alert
+   private void showLoginFailedAlert() {
+      gui.showAlert("Login Failed", "Invalid account number or PIN\nPlease try again", 2.0);
+      gui.clearScreen(); // clear screen after alert
+   } // end method showLoginFailedAlert
 } // end class ATM

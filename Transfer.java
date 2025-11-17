@@ -34,20 +34,13 @@ public class Transfer extends Transaction {
 
       // check whether the user has enough money first
       if (amount > availableBalance) {
-         clearScreen();
-         getGUI().showAlert("Insufficient funds in your account", "Please choose a smaller amount.", 2.0);
+         showInsufficientFundsAlert();
          return false; // return to main menu
       }
 
       // check if this is a cheque account and amount exceeds limit
-      if (getBankDatabase().isChequeAccount(getAccountNumber())) {
-         double limit = getBankDatabase().getLimitPerCheque(getAccountNumber());
-         if (amount > limit) {
-            clearScreen();
-            getGUI().showAlert("Transfer amount exceeds the limit of HK$" + limit + " for cheque accounts",
-                  "Please choose a smaller amount.", 2.0);
-            return false; // return to main menu
-         }
+      if (!checkChequeLimit(amount)) {
+         return false; // return to main menu
       }
 
       // get target account from user

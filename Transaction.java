@@ -12,16 +12,6 @@ public abstract class Transaction {
    protected final static int CANCELED = -1;
    protected final static int EMPTY = -2;
 
-   // Transaction constructor invoked by subclasses using super()
-   public Transaction(int userAccountNumber, Screen atmScreen,
-         BankDatabase atmBankDatabase) {
-      accountNumber = userAccountNumber;
-      screen = atmScreen;
-      bankDatabase = atmBankDatabase;
-      gui = null;
-      completedSuccessfully = false;
-   } // end Transaction constructor
-
    // Transaction constructor with GUI reference
    public Transaction(int userAccountNumber, Screen atmScreen,
          BankDatabase atmBankDatabase, ATMGUI atmGUI) {
@@ -62,11 +52,33 @@ public abstract class Transaction {
       completedSuccessfully = completed;
    } // end method setCompletedSuccessfully
 
+   // Check cheque account limit and show alert if exceeded
+   // Returns true if limit is valid (or not a cheque account), false if exceeded
+   protected boolean checkChequeLimit(double amount) {
+      if (bankDatabase.isChequeAccount(accountNumber)) {
+         double limit = bankDatabase.getLimitPerCheque(accountNumber);
+         if (amount > limit) {
+            clearScreen();
+            gui.showAlert(
+               "Cheque Limit Exceeded",
+               String.format("Amount exceeds the limit of HK$%.2f for cheque accounts.", limit), 2.0);
+            clearScreen();
+            return false;
+         }
+      }
+      return true;
+   } // end method checkChequeLimit
+
+   // Show insufficient funds alert
+   protected void showInsufficientFundsAlert() {
+      clearScreen();
+      gui.showAlert("Insufficient funds in your account.", "Please choose a smaller amount.", 2.0);
+      clearScreen();
+   } // end method showInsufficientFundsAlert
+
    // clear screen if GUI is available
    protected void clearScreen() {
-      if (gui != null) {
-         gui.clearScreen();
-      }
+      gui.clearScreen();
    } // end method clearScreen
 
    // pause for specified milliseconds to show messages

@@ -50,14 +50,8 @@ public class Withdrawal extends Transaction {
             // check whether the user has enough money in the account
             if (amount <= availableBalance) {
                // check if this is a cheque account and amount exceeds limit
-               if (bankDatabase.isChequeAccount(getAccountNumber())) {
-                  double limit = bankDatabase.getLimitPerCheque(getAccountNumber());
-                  if (amount > limit) {
-                     clearScreen();
-                     getGUI().showAlert("Withdrawal amount exceeds the limit of HK$" + limit + " for cheque accounts.", "Please choose a smaller amount.", 2.0);
-                     clearScreen();
-                     continue; // continue the loop to allow another attempt
-                  }
+               if (!checkChequeLimit(amount)) {
+                  continue; // continue the loop to allow another attempt
                }
 
                // check whether the cash dispenser has enough money
@@ -96,9 +90,7 @@ public class Withdrawal extends Transaction {
             } // end if
             else // not enough money available in user's account
             {
-               clearScreen();
-               getGUI().showAlert("Insufficient funds in your account.", "Please choose a smaller amount.", 2.0);
-               clearScreen();
+               showInsufficientFundsAlert();
             } // end else
          } // end if
          else // user chose cancel menu option
