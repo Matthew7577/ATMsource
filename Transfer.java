@@ -94,7 +94,7 @@ public class Transfer extends Transaction {
          screen.displayMessageLine(centerText("Please enter transfer amount", 72));
          screen.displayMessageLine(centerText("(or press CANCEL)", 72));
          screen.displayMessageLine("\n\n\n\n");
-         int input = keypad.getInputRightAlign("HK$"); // receive input with right alignment and HK$ prefix
+         double input = keypad.getInputDouble(true, "HK$"); // receive input with right alignment and HK$ prefix
 
          // check whether the user canceled or entered a valid amount
          if (input == CANCELED)
@@ -104,7 +104,7 @@ public class Transfer extends Transaction {
             getGUI().showAlert("Invalid Amount", "Please enter a valid amount", 2);
             clearScreen();
          } else if (input > 0) {
-            return (double) input; // return dollar amount as double
+            return input; // return dollar amount
          } else {
             // Invalid amount (zero or negative)
             getGUI().showAlert("Invalid Amount", "Please enter a positive amount", 2);
@@ -124,7 +124,7 @@ public class Transfer extends Transaction {
          screen.displayMessageLine(centerText("Please enter target account number", 72));
          screen.displayMessageLine(centerText("(or press CANCEL)", 72));
          screen.displayMessageLine("\n\n\n\n");
-         int input = keypad.getInputRightAlign("Account: "); // receive input with right alignment (no prefix)
+         int input = keypad.getInput(true, "Account: "); // receive input with right alignment
 
          if (input == CANCELED)
             return CANCELED;

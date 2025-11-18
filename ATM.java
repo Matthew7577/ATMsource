@@ -60,7 +60,7 @@ public class ATM {
    // returns true if user cancelled, false otherwise
    private boolean authenticateUser() {
       screen.displayMessage("\nPlease enter your account number: ");
-      int accountNumber = keypad.getInput(); // input account number
+      int accountNumber = keypad.getInput(false, ""); // input account number
 
       // Check if user canceled
       if (accountNumber == -1) {
@@ -75,7 +75,7 @@ public class ATM {
       }
 
       screen.displayMessage("\nEnter your PIN: "); // prompt for PIN
-      int pin = keypad.getInputPassword(); // input PIN with masking
+      int pin = keypad.getInputPassword(false); // input PIN with masking
 
       // Check if user canceled
       if (pin == -1) {

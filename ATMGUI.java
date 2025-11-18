@@ -612,18 +612,7 @@ public class ATMGUI extends JFrame {
         return lastInput;
     }
 
-    public int getNumericInput() {
-        return getNumericInput(false, false);
-    }
-
-    public int getNumericInput(boolean passwordMode) {
-        return getNumericInput(passwordMode, false);
-    }
-
-    public int getNumericInput(boolean passwordMode, boolean rightAlign) {
-        return getNumericInput(passwordMode, rightAlign, "");
-    }
-
+    // Get integer input
     public int getNumericInput(boolean passwordMode, boolean rightAlign, String prefix) {
         String input = getInput(true, passwordMode, rightAlign, prefix);
         if ("CANCEL".equals(input)) {
@@ -639,15 +628,19 @@ public class ATMGUI extends JFrame {
         }
     }
 
-    public double getDoubleInput() {
-        String input = getInput(true, false);
-        if ("CANCEL".equals(input) || input.isEmpty()) {
-            return -1;
+    // Get double input
+    public double getDoubleInput(boolean rightAlign, String prefix) {
+        String input = getInput(true, false, rightAlign, prefix);
+        if ("CANCEL".equals(input)) {
+            return -1; // CANCEL button pressed
+        }
+        if (input.isEmpty()) {
+            return EMPTY; // Empty input (Enter pressed with no input)
         }
         try {
             return Double.parseDouble(input);
         } catch (NumberFormatException e) {
-            return -1;
+            return EMPTY; // Invalid input
         }
     }
 

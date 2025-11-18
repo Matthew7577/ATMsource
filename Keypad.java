@@ -9,23 +9,18 @@ public class Keypad {
       this.gui = gui;
    } // end Keypad constructor
 
-   // return an integer value entered by user
-   public int getInput() {
-      return gui.getNumericInput();
+   // return an integer value entered by user with alignment and prefix
+   public int getInput(boolean rightAlign, String prefix) {
+      return gui.getNumericInput(false, rightAlign, prefix);
    } // end method getInput
 
    // return an integer value entered by user with password masking
-   public int getInputPassword() {
-      return gui.getNumericInput(true);
+   public int getInputPassword(boolean rightAlign) {
+      return gui.getNumericInput(true, rightAlign, "");
    } // end method getInputPassword
 
-   // return an integer value entered by user with right alignment
-   public int getInputRightAlign(String prefix) {
-      return gui.getNumericInput(false, true, prefix);
-   } // end method getInputRightAlign
-
-   // return a double value entered by user
-   public double getInputDouble() {
-      return gui.getDoubleInput();
+   // return a double value entered by user with alignment and prefix
+   public double getInputDouble(boolean rightAlign, String prefix) {
+      return gui.getDoubleInput(rightAlign, prefix);
    } // end method getInputDouble
 } // end class Keypad
