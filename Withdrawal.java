@@ -116,9 +116,9 @@ public class Withdrawal extends Transaction {
       // loop while no valid choice has been made
       while (userChoice == 0) {
          // display the menu in table format
-         screen.displayMessageLine("\n\n");
+         screen.displayMessageLine("");
          screen.displayMessageLine(centerText("Withdrawal Menu", 72));
-         screen.displayMessageLine("\n\n");
+         screen.displayMessageLine("");
 
          // Create 2x3 table for menu options
          String topLine = "┌──────────────────────────────────┬──────────────────────────────────┐";
@@ -127,15 +127,21 @@ public class Withdrawal extends Transaction {
          screen.displayMessageLine(topLine);
 
          // Row 1: $200 (left) and $500 (right)
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine("│" + centerText("1. $200", 34) + "│" + centerText("2. $500", 34) + "│");
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine(midLine);
 
          // Row 2: $1,000 (left) and $2,000 (right)
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine("│" + centerText("3. $1,000", 34) + "│" + centerText("4. $2,000", 34) + "│");
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine(midLine);
 
          // Row 3: $5,000 (left) and Other amount (right)
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine("│" + centerText("5. $5,000", 34) + "│" + centerText("6. Other amount", 34) + "│");
+         screen.displayMessageLine("│" + centerText("", 34) + "│" + centerText("", 34) + "│");
          screen.displayMessageLine(botLine);
 
          // Get input from GUI with side buttons
