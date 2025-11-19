@@ -123,7 +123,7 @@ public class ATMGUI extends JFrame {
         // Left buttons: L1, L2, L3, L4 (top to bottom)
         String[] leftPositions = { "L1", "L2", "L3", "L4" };
         for (int i = 0; i < 4; i++) {
-            JButton btn = new JButton("<");
+            JButton btn = new JButton(">");
             btn.setOpaque(true);
             btn.setBorderPainted(false);
             btn.setBackground(BUTTON_COLOR);
@@ -149,7 +149,7 @@ public class ATMGUI extends JFrame {
         // Right buttons: R1, R2, R3, R4 (top to bottom)
         String[] rightPositions = { "R1", "R2", "R3", "R4" };
         for (int i = 0; i < 4; i++) {
-            JButton btn = new JButton(">");
+            JButton btn = new JButton("<");
             btn.setOpaque(true);
             btn.setBorderPainted(false);
             btn.setBackground(BUTTON_COLOR);
